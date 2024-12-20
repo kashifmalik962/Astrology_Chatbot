@@ -499,6 +499,8 @@ async def getAnswer(question:str, item:Item, response:Response):
                 else:
                     return {"answer":roman_text}
             else:
+                # User by-default language is english
+                
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
                     return {"answer":response}

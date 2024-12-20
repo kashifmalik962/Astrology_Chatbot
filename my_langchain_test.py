@@ -242,6 +242,3 @@ result = pipeline("What is AI?")
 print(result)
 
 
-
-
-# add temp line
