@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect, Request
 from pydantic import BaseModel
 import pandas as pd
 import re
@@ -14,9 +14,14 @@ from langdetect import detect
 import translators as Translator
 from langchain_ollama import OllamaLLM
 from langchain.prompts import ChatPromptTemplate
+from langchain.memory import ConversationBufferMemory
+from langchain.chains import LLMChain
 from datetime import datetime
 from geopy.geocoders import Nominatim
 from indic_transliteration import sanscript
+from fastapi.templating import Jinja2Templates
+import requests
+
 
 class Item(BaseModel):
     year:str=None
@@ -38,7 +43,7 @@ return_style = "json"
 
 def detect_hinglish(text):
     print(text, "text in detect_hinglish")
-    hindi_words = ['agar', 'jab', 'isliye', 'jabki', 'kyun', 'par', 'phir', 'kaise', 'bas', 'hai', 'kya', 'apni' ,'koi', 'kis', 'mera', 'meri', 'sabhi', 'magar', 'aur', 'ya', 'toh', 'lekin', 'kuch', 'kisne', 'jise', 'tum', 'he']  # Add more transliterated Hindi words
+    hindi_words = ['agar', 'jab','kab' ,'isliye', 'jabki', 'kyun', 'par', 'hogi' ,'phir', 'kaise', 'bas', 'hai', 'kya', 'apni' ,'koi', 'kis', 'mera', 'meri','Meri' ,'sabhi', 'magar', 'aur', 'toh', 'lekin', 'kuch', 'kisne', 'jise', 'tum', 'he']  # Add more transliterated Hindi words
     hinglish = [word for word in hindi_words if word in text.split()]
     print(hinglish, "hinglish +++++++++")
     if len(hinglish) > 0:
@@ -352,6 +357,13 @@ def stemming(text):
     stemmed_word = [porter.stem(word) for word in text]
     return stemmed_word
 
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/")
+def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
 global similarity, df, questions
 
 @app.get("/re-train")
@@ -380,7 +392,7 @@ async def reTrainModel():
 
 
 @app.post("/getAnswer")
-async def getAnswer(question:str, item:Item, response:Response):
+async def getAnswer(question:str, item:Item, response:Response, request: Request):
     global questions, df, userLanguage,  year, month, day, hour , minute, second, birth_place
     
     detect_lang_user = detect_hinglish(question)
@@ -425,46 +437,92 @@ async def getAnswer(question:str, item:Item, response:Response):
             else:
                 return {"answer":df["Answer"][similarities[0]]}
         else:
+            print("llama model running......")
+            
+            def generate_question(translated_text, horoscope_data, item, age):
+                """Generate the appropriate question based on age."""
+                base_question = (
+                    f"Only act as an astrologer and do not reply to questions other than astrology. "
+                    f"Let's say the question is '{translated_text}'. "
+                    f"This is my BirthChart details={horoscope_data}. "
+                    f"This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. "
+                )
+                if age < 15:
+                    print(base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only."
+                elif age > 50:
+                    print(base_question + "Considering my age is greater than 50 according to my kundli, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is greater than 50 according to my kundli, please give a positive answer in 50 to 60 words only."
+                else:
+                    print(base_question + "According to my kundli, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "According to my kundli, please give a positive answer in 50 to 60 words only."
+                
+            
+            data = await request.json()
+            print("Raw data received:", data)
+            
+            try:
+                # Extract `item` from the parsed data
+                item_data = data.get('item')
+                print("Parsed item:", item_data)
+                item_data["year"]
+            except:
+                item_data = data
+            
+            # Convert dictionary into Pydantic model for dot notation access
+            item = Item(**item_data)
+            
+            print("horoscope_data running...",item.year,item.month,item.day,item.hour,item.minute,item.birth_place)
             horoscope_data = get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place)
-            print(horoscope_data, "horoscope_data +++++")
+            # print(horoscope_data, "horoscope_data +++++")
             # response = predict_category(text, horoscope_data)
             # response = horoscope_data
             
+            print("template running ...")
             template = """
                 Answer the question below:
                 
-                here the conv history: {context}
+                here the conversational history: {history}
                 
                 Question: {question}
                 
                 Answer: 
             """
-
+            print("model running...")
             model = OllamaLLM(model="llama3.2", temperature=0.1, top_k=10, top_p=0.8)
             prompt = ChatPromptTemplate.from_template(template)
-            
-            chain = prompt | model
+            memory = ConversationBufferMemory(input_key="question", memory_key="history")
+            chain = LLMChain(llm=model, prompt=prompt, memory=memory)
             
             age = calculate_age(item.year)
             
-            if 15 > age:
-                print(f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age is under 15 according my kundli, please give positive answer in 50 to 60 words only")
-                try:
-                    result = chain.invoke({"context":"", "question":f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age is under 15 according my kundli, please give positive answer in 50 to 60 words only"})
-                except Exception as e:
-                    print("Model is not Woring ",e)
-            elif 50 < age:
-                print(f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age greater then 50 according my kundli, please give positive answer in 50 to 60 words only")
-                try:
-                    result = chain.invoke({"context":"", "question":f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age greater then 50 according my kundli, please give positive answer in 50 to 60 words only"})
-                except Exception as e:
-                    print("Model is not Woring ",e)
-            else:
-                print(f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. According my kundli, please give positive answer in 50 to 60 words only")
-                try:
-                    result = chain.invoke({"context":"", "question":f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. According my kundli, please give positive answer in 50 to 60 words only"})
-                except Exception as e:
-                    print("Model is not Woring ",e)
+            # Generate question and get response
+            try:
+                question = generate_question(translated_text, horoscope_data, item, age)
+                response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
+                result = response["text"]
+                print(result, "result response[text] ##########")
+            except Exception as e:
+                print(f"Model invocation failed with error: {e}")
+            
+            # if 15 > age:
+            #     print(f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age is under 15 according my kundli, please give positive answer in 50 to 60 words only")
+            #     try:
+            #         result = chain.invoke({"context":"", "question":f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age is under 15 according my kundli, please give positive answer in 50 to 60 words only"})
+            #     except Exception as e:
+            #         print("Model is not Woring ",e)
+            # elif 50 < age:
+            #     print(f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age greater then 50 according my kundli, please give positive answer in 50 to 60 words only")
+            #     try:
+            #         result = chain.invoke({"context":"", "question":f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. Considering my age greater then 50 according my kundli, please give positive answer in 50 to 60 words only"})
+            #     except Exception as e:
+            #         print("Model is not Woring ",e)
+            # else:
+            #     print(f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. According my kundli, please give positive answer in 50 to 60 words only")
+            #     try:
+            #         result = chain.invoke({"context":"", "question":f"Only act as an astrologer and do not reply for question other than astrology, let say the question is '{translated_text}'. This is my BirthChart details={horoscope_data}. This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place}]. According my kundli, please give positive answer in 50 to 60 words only"})
+            #     except Exception as e:
+            #         print("Model is not Woring ",e)
             
             response = result
 
@@ -473,13 +531,16 @@ async def getAnswer(question:str, item:Item, response:Response):
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
                     translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text}
                 
                 elif "Based on your birth chart" in response:
                     translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text[translated_text.index(",")+2:]}
                 
                 else:
+                    print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text}
                 
             elif userLanguage == "Hinglish":
@@ -488,25 +549,31 @@ async def getAnswer(question:str, item:Item, response:Response):
                     translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     roman_text = hindi_to_roman(translated_text)
                     print(roman_text)
+                    print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer": roman_text}
                 
                 elif "Based on your birth chart" in response:
                     response = response[response.index(",")+2:]
                     translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     roman_text = hindi_to_roman(translated_text)
+                    print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}
 
                 else:
+                    print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}
             else:
                 # User by-default language is english
                 
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
+                    print(userLanguage, "userLanguage", response, "response")
                     return {"answer":response}
                 elif "Based on your birth chart" in response:
+                    print(userLanguage, "userLanguage", response[response.index(",")+2:], "response")
                     return {"answer":response[response.index(",")+2:]}
                 else:
+                    print(userLanguage, "userLanguage", response, "response")
                     return {"answer":response}
     except:
         return {"answer":"Not Found"}
