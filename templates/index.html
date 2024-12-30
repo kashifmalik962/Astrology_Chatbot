@@ -175,7 +175,7 @@
             };
 
             // Make a GET request to your Flask backend using Axios
-            axios.post(url, { item }, { timeout: 50000 }) // 50-second timeout
+            axios.post(url, { item }, { timeout: 90000 }) // 90-second timeout
                 .then(response => {
                     // Extract and log the response data
                     const data = JSON.stringify(response.data.answer);

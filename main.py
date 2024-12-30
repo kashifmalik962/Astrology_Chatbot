@@ -540,6 +540,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     return {"answer":translated_text[translated_text.index(",")+2:]}
                 
                 else:
+                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text}
                 
@@ -560,6 +561,8 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     return {"answer":roman_text}
 
                 else:
+                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    roman_text = hindi_to_roman(translated_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}
             else:
