@@ -1,0 +1,15 @@
+flatlib==0.2.3
+fastapi==0.115.6
+geopy==2.4.1
+indic_transliteration==2.3.68
+langchain==0.3.13
+langchain_ollama==0.2.2
+langdetect==1.0.9
+nltk==3.9.1
+pandas==2.2.3
+pydantic==2.10.4
+Requests==2.32.3
+scikit_learn==1.6.0
+translators==5.9.3
+uvicorn==0.34.0
+vedicastro==0.2.1
