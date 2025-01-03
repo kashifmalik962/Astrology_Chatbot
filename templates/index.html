@@ -77,7 +77,7 @@
                 <div id="ScrollBottom" class="ScrollBottom" style="overflow-y: auto; padding-right: 10px;">
                     <div id="Chatbot">
                         <div style="width:fit-content;" class="alert alert-success" role="alert">
-                            Location of birth
+                            Pin code location of birth
                             <input type="location" id="birthLocation">
                         </div>
                         <div style="width:fit-content;" class="alert alert-success" role="alert">
@@ -171,11 +171,11 @@
                 'day': itemValue.day,
                 'hour': itemValue.hour,
                 'minute': itemValue.minute,
-                'birth_place': birthLocation
+                'birth_place_pin': birthLocation
             };
 
             // Make a GET request to your Flask backend using Axios
-            axios.post(url, { item }, { timeout: 90000 }) // 90-second timeout
+            axios.post(url, { item }) // 200-second timeout
                 .then(response => {
                     // Extract and log the response data
                     const data = JSON.stringify(response.data.answer);
