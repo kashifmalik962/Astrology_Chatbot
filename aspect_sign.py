@@ -146,20 +146,16 @@
 
 
 
-from geopy.geocoders import Nominatim
+def check_user_question_tone():
+    match_greeting_words = ["heloo", "hello", "hey", "namaste", "namastee", "hy", "heey" ,"hi", "hii", "hiii"]
+    txt = "heloo hello hey namaste namastee hy heey hi hii hiii who"
+    # new_txt = txt.split()
+    for word in txt.split():
+        if word in match_greeting_words:
+            print("greetings")
+        else:
+            print("not greeting")
 
-def get_lat_long_by_pincode(pincode):
-    geolocator = Nominatim(user_agent="pincode_locator")
-    location = geolocator.geocode(pincode)
 
-    if location:
-        return location.latitude, location.longitude
-    else:
-        print("Location not found")
-        return None
 
-# Example usage:
-pincode = "474001"  # Delhi pincode
-lat_long = get_lat_long_by_pincode(pincode)
-if lat_long:
-    print(f"Latitude: {lat_long[0]}, Longitude: {lat_long[1]}")
+check_user_question_tone()

@@ -43,8 +43,8 @@ return_style = "json"
 
 def detect_hinglish(text):
     print(text, "text in detect_hinglish")
-    hindi_words = ['agar', 'jab','kab' ,'isliye', 'jabki', 'kyun', 'par', 'hogi' ,'phir', 'kaise', 'bas', 'hai', 'kya', 'apni' ,'koi', 'kis', 'mera', 'meri','Meri' ,'sabhi', 'magar', 'aur', 'toh', 'lekin', 'kuch', 'kisne', 'jise', 'tum', 'he']  # Add more transliterated Hindi words
-    hinglish = [word for word in hindi_words if word in text.split()]
+    hindi_words = ['agar', 'jab','kab' ,'isliye', 'jabki', 'kyun', 'par', 'hogi' ,'phir', 'kaise', 'bas', 'hai', 'kya', 'apni' ,'koi', 'kis', 'mera', 'meri','sabhi', 'magar', 'aur', 'toh', 'lekin', 'kuch', 'kisne', 'jise', 'tum', 'he']  # Add more transliterated Hindi words
+    hinglish = [word for word in hindi_words if word.lower() in text.split()]
     print(hinglish, "hinglish +++++++++")
     if len(hinglish) > 0:
         return "Hinglish"
@@ -179,7 +179,6 @@ def get_horoscope_data(year, month, day, hour, minute, birth_place_pin):
     print(zodiac_info, "zodiac_info +++++++=====")
     
     return formatted_planets_data, zodiac_info
-
 
 
 # Create object of tf-idf class
@@ -322,14 +321,14 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     # f"This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place_pin}]. "
                 )
                 if age < 15:
-                    print(base_question + "Considering my age is under 15 according to my kundli, Do not highlight the house detail & radical no mentioned in your response if user not ask. please give a positive answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is under 15 according to my kundli, Do not highlight the house detail & radical no mentioned in your response if user not ask. please give a positive answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only."
                 elif age > 50:
-                    print(base_question + "Considering my age is greater than 50 according to my kundli, Do not highlight the house detail & radical no mentioned in your response if user not ask. please give a positive answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is greater than 50 according to my kundli, Do not highlight the house detail & radical no mentioned in your response if user not ask. please give a positive answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is greater than 50 according to my kundli, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is greater than 50 according to my kundli, please give a positive answer in 50 to 60 words only."
                 else:
-                    print(base_question + "According to my kundli, Do not highlight the house detail & radical no mentioned in your response if user not ask. please give a positive answer in 50 to 60 words only.")
-                    return base_question + "According to my kundli, Do not highlight the house  detail & radical nomentioned in your response. if user not ask please give a positive answer in 50 to 60 words only."
+                    print(base_question + "According to my kundli, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "According to my kundli, please give a positive answer in 50 to 60 words only."
                 
             
             data = await request.json()
@@ -372,13 +371,30 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
             
             # Generate question and get response
             try:
-                question = generate_question(translated_text, horoscope_data, radical_no_with_lagna, item, age)
-                response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
-                result = response["text"]
-                print(result, "result response[text] ##########")
+                # Convert greeting words to a set for O(1) lookup time
+                match_greeting_words = {"heloo", "hello", "hey", "heyy" , "namaste", "namastee", "hy", "heey", "hi", "hii", "hiii"}
+
+                # Split the translated text into words and check for greetings
+                words_in_text = translated_text.split()
+
+                # Check if any word in the translated text matches a greeting word using set lookup
+                if any(word in match_greeting_words for word in words_in_text):
+                    print("greetings")
+                    # Call the model only if greeting is found
+                    response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
+                    result = response["text"]
+                    print(result, "result response[text] ##########")
+                else:
+                    print("not greeting")
+                    # Generate the question and invoke model only for non-greeting text
+                    question = generate_question(translated_text, horoscope_data, radical_no_with_lagna, item, age)
+                    response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
+                    result = response["text"]
+                    print(result, "result response[text] ##########")
+
             except Exception as e:
                 print(f"Model invocation failed with error: {e}")
-            
+
             response = result
 
             print(response, "+++")
