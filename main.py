@@ -118,6 +118,19 @@ def calculate_lagna(jd, latitude, longitude):
     return sign_index
 
 
+def get_radical_no(year, month, day, hour, minute, birth_place_pin):
+
+    birth_place_lat_lon = get_lat_long(birth_place_pin)
+
+    # Get radical Lagna number
+    jd = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60.0)
+    lagna = calculate_lagna(jd, birth_place_lat_lon[0], birth_place_lat_lon[1])
+    zodiac_info = get_zodiac_info(lagna)
+
+    print(zodiac_info, "zodiac_info +++++++=====")
+    return zodiac_info
+
+
 def get_horoscope_data(year, month, day, hour, minute, birth_place_pin):
     birth_place_pin = get_lat_long(birth_place_pin)
     
@@ -169,16 +182,261 @@ def get_horoscope_data(year, month, day, hour, minute, birth_place_pin):
 
     # Format and return the final horoscope data
     formatted_planets_data = format_planets_data(final_data)
-
-
-    # Get radical Lagna number
-    jd = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60.0)
-    lagna = calculate_lagna(jd, birth_place_pin[0], birth_place_pin[1])
-    zodiac_info = get_zodiac_info(lagna)
-
-    print(zodiac_info, "zodiac_info +++++++=====")
     
-    return formatted_planets_data, zodiac_info
+    return formatted_planets_data
+
+
+# Function to get Vedic Zodiac Sign based on degree (with Lahiri Ayanamsha shift)
+def get_vedic_zodiac_sign(degree):
+    # Vedic zodiac signs
+    vedic_zodiac_list = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
+                         'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+    # Shift by 24 degrees for Lahiri Ayanamsha and ensure degree wraps around
+    degree = (degree - 24) % 360
+    return vedic_zodiac_list[int(degree // 30)]
+
+# Function to calculate Ascendant, Sun, and Moon Signs in Vedic astrology
+def calculate_vedic_astrological_signs(year, month, day, hour, minute, birth_place_pin):
+
+    birth_place_lat_lon = get_lat_long(birth_place_pin)
+
+    # Convert birthdate to Julian Date
+    jd_ut = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60.0)
+    
+    # Calculate Ascendant (Rising sign) with Lahiri Ayanamsha
+    cusps, _ = swe.houses(jd_ut, birth_place_lat_lon[0], birth_place_lat_lon[1], b'P')
+    ascendant_degree = cusps[0]  # Ascendant is the first house cusp
+    rising_sign = get_vedic_zodiac_sign(ascendant_degree)
+    
+    # Calculate Sun and Moon Signs in Sidereal Zodiac
+    sun_pos = swe.calc_ut(jd_ut, swe.SUN)[0]
+    moon_pos = swe.calc_ut(jd_ut, swe.MOON)[0]
+    sun_sign = get_vedic_zodiac_sign(sun_pos[0])
+    moon_sign = get_vedic_zodiac_sign(moon_pos[0])
+    
+    print('Rising Sign is', rising_sign,
+        'Sun Sign is', sun_sign,
+        'Moon Sign is', moon_sign)
+    
+    return {
+        'Rising Sign': rising_sign,
+        'Sun Sign': sun_sign,
+        'Moon Sign': moon_sign
+    }
+
+
+# Zodiac signs and their rulers
+ZODIAC_RULERS = {
+    1: "Mars",        # Aries
+    2: "Venus",       # Taurus
+    3: "Mercury",     # Gemini
+    4: "Moon",        # Cancer
+    5: "Sun",         # Leo
+    6: "Mercury",     # Virgo
+    7: "Venus",       # Libra
+    8: "Mars",        # Scorpio
+    9: "Jupiter",     # Sagittarius
+    10: "Saturn",     # Capricorn
+    11: "Saturn",     # Aquarius
+    12: "Jupiter"     # Pisces
+}
+
+# Function to calculate Rahu and Ketu
+def calculate_rahu_ketu(jd):
+    # Get the position of the Moon's Mean Node (Rahu)
+    rahu_position, _ = swe.calc_ut(jd, swe.MEAN_NODE)  # MEAN_NODE for Rahu
+    
+    # Calculate Ketu as 180 degrees opposite to Rahu
+    ketu_position = (rahu_position[0] + 180) % 360  # Opposite to Rahu
+
+    # Find the zodiac signs for Rahu and Ketu
+    rahu_sign = int(rahu_position[0] // 30) + 1
+    ketu_sign = int(ketu_position // 30) + 1
+
+    return rahu_position[0], rahu_sign, ketu_position, ketu_sign
+
+# Function to calculate the Ascendant and its Lord
+def calculate_lagna_lord(year, month, day, hour, minute, birth_place_pin):
+
+    birth_place_lat_lon = get_lat_long(birth_place_pin)
+
+    # Convert date and time to Julian Day
+    jd = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60.0)
+    
+    # Calculate sidereal time
+    sidereal_time = swe.sidtime(jd)
+    
+    # Calculate the Ascendant (Lagna)
+    ascendant = swe.houses(jd, birth_place_lat_lon[0], birth_place_lat_lon[1], b'P')[0][0]  # 'P' for Placidus house system
+    ascendant_sign = int(ascendant // 30) + 1  # Divide by 30 to get the zodiac sign (1-12)
+
+    # Determine the Lagna Lord
+    lagna_lord = ZODIAC_RULERS[ascendant_sign]
+
+    # Calculate Rahu and Ketu
+    rahu_position, rahu_sign, ketu_position, ketu_sign = calculate_rahu_ketu(jd)
+
+    return {
+        "ascendant": ascendant,
+        "ascendant_sign": ascendant_sign,
+        "lagna_lord": lagna_lord,
+        "rahu_position": rahu_position,
+        "rahu_sign": rahu_sign,
+        "ketu_position": ketu_position,
+        "ketu_sign": ketu_sign
+    }
+
+
+
+
+# Get Birth, Natal Chart, Kundli 
+vedic_zodiac_list = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
+                     'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
+
+# Function to get Vedic Zodiac Sign based on degree (with Lahiri Ayanamsha shift)
+def get_vedic_zodiac_sign(degree):
+    degree = (degree - 24) % 360  # Adjust by 24 degrees for Lahiri Ayanamsha
+    return vedic_zodiac_list[int(degree // 30)]
+
+
+# Function to calculate Planetary Positions in the Birth Chart
+def calculate_planetary_positions(year, month, day, hour, minute, birth_place_pin):
+    
+    # Convert birthdate to Julian Date
+    birth_place_lat_lon = get_lat_long(birth_place_pin)
+
+    jd_ut = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60)
+
+    # List of planets
+    planets = [swe.SUN, swe.MOON, swe.MERCURY, swe.VENUS, swe.MARS, swe.JUPITER, swe.SATURN, swe.URANUS, swe.NEPTUNE, swe.PLUTO]
+    planet_names = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']
+
+    planetary_positions = {}
+
+    for i, planet in enumerate(planets):
+        planet_pos = swe.calc_ut(jd_ut, planet)[0]
+        planetary_positions[planet_names[i]] = {
+            'sign': get_vedic_zodiac_sign(planet_pos[0]),
+            'degree': round(planet_pos[0] % 30,2)  # degree within the sign
+        }
+
+    return planetary_positions
+
+# Function to calculate Houses in the Birth Chart
+def calculate_houses(year, month, day, hour, minute, birth_place_pin):
+    
+    # Convert birthdate to Julian Date
+    birth_place_lat_lon = get_lat_long(birth_place_pin)
+
+    jd_ut = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60)
+
+    # Calculate Houses with Lahiri Ayanamsha
+    cusps, _ = swe.houses(jd_ut, birth_place_lat_lon[0], birth_place_lat_lon[1], b'P')
+    
+    houses = {}
+    for i in range(12):
+        house_sign = get_vedic_zodiac_sign(cusps[i])
+        house_degree = cusps[i] % 30
+        houses[f'House {i+1}'] = {
+            'sign': house_sign,
+            'degree': round(house_degree,2)
+        }
+
+    return houses
+
+# Function to get full birth chart
+def get_full_birth_chart(year, month, day, hour, minute, birth_place_pin):
+    # Calculate the planetary positions
+    print("planetary_positions runnng.....")
+    planetary_positions = calculate_planetary_positions(year, month, day, hour, minute, birth_place_pin)
+
+    # Calculate the Ascendant, Sun, and Moon signs
+    print("vedic_astrological_signs runnng.....")
+    vedic_astrological_signs = calculate_vedic_astrological_signs(year, month, day, hour, minute, birth_place_pin)
+
+    # Calculate the Houses in the birth chart
+    print("calculate_houses runnng.....")
+    houses = calculate_houses(year, month, day, hour, minute, birth_place_pin)
+
+    print('Planetary Positions', planetary_positions,
+        'Ascendant, Sun, and Moon Signs', vedic_astrological_signs,
+        'Houses', houses)
+    
+    # Combine all the information into a single dictionary
+    birth_chart = {
+        'Planetary Positions': planetary_positions,
+        'Ascendant, Sun, and Moon Signs': vedic_astrological_signs,
+        'Houses': houses
+    }
+
+    return birth_chart
+
+
+def get_nakshatra_with_dasha(year, month, day, hour, minute):
+    # Function to calculate Nakshatra
+    def get_nakshatra(moon_longitude):
+        nakshatras = [
+            "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", 
+            "Pushya", "Ashlesha", "Magha", "Purvaphalguni", "Uttara-phalguni", "Hasta", 
+            "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purvashadha", 
+            "Uttarasadha", "Shravana", "Dhanishta", "Shatabhisha", "Purvabhadrapada", 
+            "Uttara-bhadrapada", "Revati"
+        ]
+        
+        nakshatra_index = int(moon_longitude // 13.3333)
+        return nakshatras[nakshatra_index]
+
+    # Function to get the Dasha based on the Nakshatra
+    def get_dasha(nakshatra_name):
+        # Vimshottari Dasha system sequence (Planetary Lords)
+        dasha_lords = {
+            "Ashwini": ("Ketu", 7, "years"),
+            "Bharani": ("Venus", 20, "years"),
+            "Krittika": ("Sun", 6, "years"),
+            "Rohini": ("Moon", 10, "years"),
+            "Mrigashira": ("Mars", 7, "years"),
+            "Ardra": ("Rahu", 18, "years"),
+            "Punarvasu": ("Jupiter", 16, "years"),
+            "Pushya": ("Saturn", 19, "years"),
+            "Ashlesha": ("Mercury", 17, "years"),
+            "Magha": ("Ketu", 7, "years"),
+            "Purvaphalguni": ("Venus", 20, "years"),
+            "Uttara-phalguni": ("Sun", 6, "years"),
+            "Hasta": ("Moon", 10, "years"),
+            "Chitra": ("Mars", 7, "years"),
+            "Swati": ("Rahu", 18, "years"),
+            "Vishakha": ("Jupiter", 16, "years"),
+            "Anuradha": ("Saturn", 19, "years"),
+            "Jyeshtha": ("Mercury", 17, "years"),
+            "Mula": ("Ketu", 7, "years"),
+            "Purvashadha": ("Venus", 20, "years"),
+            "Uttarasadha": ("Sun", 6, "years"),
+            "Shravana": ("Moon", 10, "years"),
+            "Dhanishta": ("Mars", 7, "years"),
+            "Shatabhisha": ("Rahu", 18, "years"),
+            "Purvabhadrapada": ("Jupiter", 16, "years"),
+            "Uttara-bhadrapada": ("Saturn", 19, "years"),
+            "Revati": ("Mercury", 17, "years")
+        }
+        
+        return dasha_lords.get(nakshatra_name, "Unknown")
+
+    # Convert to Julian Day (required by Swiss Ephemeris)
+    jd_ut = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60)
+
+    # Get the position of the Moon
+    moon_longitude, _ = swe.calc(jd_ut, swe.MOON)
+
+    # Extract the longitude from the tuple
+    moon_longitude = moon_longitude[0]
+
+    # Get Nakshatra name
+    nakshatra_name = get_nakshatra(moon_longitude)
+
+    # Get the Dasha for the current Nakshatra
+    current_dasha = get_dasha(nakshatra_name)
+
+    return {"moon_longitude":moon_longitude, "my nakshatra is":nakshatra_name, "current_dasha":current_dasha}
 
 
 # Create object of tf-idf class
@@ -311,15 +569,36 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
         else:
             print("llama model running......")
 
-            def generate_question(translated_text, horoscope_data, radical_no_with_lagna, item, age):
+            def generate_question(translated_text, entity=None , age=None):
                 """Generate the appropriate question based on age."""
+                print(entity, "entity in generate_question")
+                
+                vedic_astrological_signs = ""
+                radical_no = ""
+                horoscope_data = ""
+                lagna_lord = ""
+                birth_chart = ""
+                nakshatra = ""
+                
+                if "zodiac_sign" in entity:
+                    vedic_astrological_signs = calculate_vedic_astrological_signs(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "radical" in entity:
+                    radical_no = get_radical_no(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "house_planets" in entity:
+                    horoscope_data = get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "lagna" in entity:
+                    lagna_lord = calculate_lagna_lord(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "birth_chart" in entity:
+                    birth_chart = get_full_birth_chart(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "nakshatra" in entity:
+                    nakshatra = get_nakshatra_with_dasha(item.year,item.month,item.day,item.hour,item.minute)
+                
                 base_question = (
                     f"Only act as an astrologer and do not reply to questions other than astrology. "
+                    f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra} ."
                     f"Let's say the question is '{translated_text}'. "
-                    f"This is my BirthChart details={horoscope_data}. "
-                    f"{radical_no_with_lagna}. "
-                    # f"This is my birthdate=[{item.day},{item.month},{item.year}, {item.hour}:{item.minute}, {item.birth_place_pin}]. "
                 )
+
                 if age < 15:
                     print(base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only.")
                     return base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only."
@@ -346,11 +625,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
             item = Item(**item_data)
             
             print("horoscope_data running...",item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
-            horoscope_data, radical_no_with_lagna  = get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
-            # print(horoscope_data, "horoscope_data +++++")
-            # response = predict_category(text, horoscope_data)
-            # response = horoscope_data
-            
+
             print("template running ...")
             template = """
                 Answer the question below:
@@ -361,6 +636,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 
                 Answer:
             """
+            
             print("model running...")
             model = OllamaLLM(model="llama3.2:latest", temperature=0.1, top_k=10, top_p=0.8)
             prompt = ChatPromptTemplate.from_template(template)
@@ -368,33 +644,86 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
             chain = LLMChain(llm=model, prompt=prompt, memory=memory)
             
             age = calculate_age(item.year)
-            
             # Generate question and get response
             try:
-                # Convert greeting words to a set for O(1) lookup time
-                match_greeting_words = {"heloo", "hello", "hey", "heyy" , "namaste", "namastee", "hy", "heey", "hi", "hii", "hiii"}
+                import re
+                # Define keywords and entities
+                keywords = {
+                    "zodiac_sign": [
+                        "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "moon sign","astrological sign", "aries", "taurus", "gemini",
+                        "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn",
+                        "aquarius", "pisces", "lunar sign", "chandra rashi", "rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign"
+                    ],
+                    "radical":["radical", "radicals", "life path number", "path number", "path no" ,"destiny number", "destiny no"],
+                    "house_planets": [
+                        "house", "bhava", "first house", "second house", "third house", "fourth house",
+                        "fifth house", "sixth house", "seventh house", "eighth house", "ninth house",
+                        "tenth house", "eleventh house", "twelfth house", "lagna bhava","planet", "planets","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus",
+                        "saturn", 
+                    ],
+                    "lagna":["rahu", "ketu", "lagna lord", "ascendant lord", "lagna"],
+                    "birth_chart": [
+                        "kundli", "birth chart", "birth_chart" ,"horoscope chart", "natal chart", "astrological chart",
+                        "vedic chart", "janam kundli", "lagna chart", "janam patrika"
+                    ],
+                    "nakshatra": [
+                        "nakshatra", "lunar mansion", "ashwini", "bharani", "kritika", "rohini",
+                        "mrigashira", "ardra", "punarvasu", "pushya", "ashlesha", "magha", "purva phalguni",
+                        "uttara phalguni", "hasta", "chitra", "swati", "vishakha", "anuradha", "jyestha",
+                        "mula", "purva ashadha", "uttara ashadha", "shravana", "dhanishta", "shatabhisha",
+                        "purva bhadrapada", "uttara bhadrapada", "revati", "dasha", "dasa", "vimshottari dasha", "mahadasha","yogini dasha"
+                    ],
 
-                # Split the translated text into words and check for greetings
-                words_in_text = translated_text.split()
+                    "transits": [
+                        "transit", "gochar", "planetary transit", "saturn transit", "rahu transit",
+                        "ketu transit", "jupiter transit", "venus transit", "retrograde", "direct motion"
+                    ],
+                    "aspects": [
+                        "aspect", "drishti", "planetary aspect", "full aspect", "partial aspect",
+                        "graha drishti"
+                    ],
+                    "elements": [
+                        "element", "tattva", "fire sign", "earth sign", "air sign", "water sign",
+                        "fire element", "earth element", "air element", "water element"
+                    ],
+                    "compatibility": [
+                        "compatibility", "relationship compatibility", "love compatibility", "marriage compatibility",
+                        "synastry", "matching kundli", "guna matching", "ashtakoota matching", "score"
+                    ],
+                    "remedies": [
+                        "remedy", "upaya", "astrological remedy", "gemstone", "mantra", "yantra",
+                        "homa", "puja", "fasting", "donation"
+                    ],
+                    "yogas": [
+                        "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga",
+                        "vipareeta yoga", "laxmi yoga", "chandra mangala yoga"
+                    ],
+                    "timing": [
+                        "timing", "muhurta", "auspicious time", "shubh muhurta", "marriage muhurta",
+                        "grahapravesha muhurta", "naming ceremony muhurta", "baby naming muhurta"
+                    ],
+                }
 
-                # Check if any word in the translated text matches a greeting word using set lookup
-                if any(word in match_greeting_words for word in words_in_text):
-                    print("greetings")
-                    # Call the model only if greeting is found
-                    response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
-                    result = response["text"]
-                    print(result, "result response[text] ##########")
-                else:
-                    print("not greeting")
-                    # Generate the question and invoke model only for non-greeting text
-                    question = generate_question(translated_text, horoscope_data, radical_no_with_lagna, item, age)
-                    response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
-                    result = response["text"]
-                    print(result, "result response[text] ##########")
+                def extractEntity(query):
+                    entities = []
+                    for entity, variations in keywords.items():
+                        for variation in variations:
+                            if re.search(rf"\b{re.escape(variation)}\b", query, re.IGNORECASE):
+                                entities.append(entity)
+                    return entities
+
+                entity = extractEntity(translated_text)
+
+                print(entity, "extract entity")
+                # Generate the question "zodiac_sign" or "moon_sign" or "rising_sign"
+ 
+                question = generate_question(translated_text,entity, age)
+                response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
+                result = response["text"]
 
             except Exception as e:
                 print(f"Model invocation failed with error: {e}")
-
+            
             response = result
 
             print(response, "+++")
