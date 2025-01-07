@@ -674,34 +674,34 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                         "purva bhadrapada", "uttara bhadrapada", "revati", "dasha", "dasa", "vimshottari dasha", "mahadasha","yogini dasha"
                     ],
 
-                    "transits": [
-                        "transit", "gochar", "planetary transit", "saturn transit", "rahu transit",
-                        "ketu transit", "jupiter transit", "venus transit", "retrograde", "direct motion"
-                    ],
-                    "aspects": [
-                        "aspect", "drishti", "planetary aspect", "full aspect", "partial aspect",
-                        "graha drishti"
-                    ],
-                    "elements": [
-                        "element", "tattva", "fire sign", "earth sign", "air sign", "water sign",
-                        "fire element", "earth element", "air element", "water element"
-                    ],
-                    "compatibility": [
-                        "compatibility", "relationship compatibility", "love compatibility", "marriage compatibility",
-                        "synastry", "matching kundli", "guna matching", "ashtakoota matching", "score"
-                    ],
-                    "remedies": [
-                        "remedy", "upaya", "astrological remedy", "gemstone", "mantra", "yantra",
-                        "homa", "puja", "fasting", "donation"
-                    ],
-                    "yogas": [
-                        "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga",
-                        "vipareeta yoga", "laxmi yoga", "chandra mangala yoga"
-                    ],
-                    "timing": [
-                        "timing", "muhurta", "auspicious time", "shubh muhurta", "marriage muhurta",
-                        "grahapravesha muhurta", "naming ceremony muhurta", "baby naming muhurta"
-                    ],
+                    # "transits": [
+                    #     "transit", "gochar", "planetary transit", "saturn transit", "rahu transit",
+                    #     "ketu transit", "jupiter transit", "venus transit", "retrograde", "direct motion"
+                    # ],
+                    # "aspects": [
+                    #     "aspect", "drishti", "planetary aspect", "full aspect", "partial aspect",
+                    #     "graha drishti"
+                    # ],
+                    # "elements": [
+                    #     "element", "tattva", "fire sign", "earth sign", "air sign", "water sign",
+                    #     "fire element", "earth element", "air element", "water element"
+                    # ],
+                    # "compatibility": [
+                    #     "compatibility", "relationship compatibility", "love compatibility", "marriage compatibility",
+                    #     "synastry", "matching kundli", "guna matching", "ashtakoota matching", "score"
+                    # ],
+                    # "remedies": [
+                    #     "remedy", "upaya", "astrological remedy", "gemstone", "mantra", "yantra",
+                    #     "homa", "puja", "fasting", "donation"
+                    # ],
+                    # "yogas": [
+                    #     "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga",
+                    #     "vipareeta yoga", "laxmi yoga", "chandra mangala yoga"
+                    # ],
+                    # "timing": [
+                    #     "timing", "muhurta", "auspicious time", "shubh muhurta", "marriage muhurta",
+                    #     "grahapravesha muhurta", "naming ceremony muhurta", "baby naming muhurta"
+                    # ],
                 }
 
                 def extractEntity(query):
@@ -717,7 +717,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 print(entity, "extract entity")
                 # Generate the question "zodiac_sign" or "moon_sign" or "rising_sign"
  
-                question = generate_question(translated_text,entity, age)
+                question = generate_question(translated_text, entity, age)
                 response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
                 result = response["text"]
 
@@ -734,7 +734,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text}
                 
-                elif "Based on your birth chart" in response:
+                elif "Based on your birth chart" in response or "Based on your Kundli" in response:
                     translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text[translated_text.index(",")+2:]}
@@ -753,7 +753,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer": roman_text}
                 
-                elif "Based on your birth chart" in response:
+                elif "Based on your birth chart" in response or "Based on your Kundli" in response:
                     response = response[response.index(",")+2:]
                     translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     roman_text = hindi_to_roman(translated_text)
@@ -773,7 +773,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     response = response[response.index("positive")+26:]
                     print(userLanguage, "userLanguage", response, "response")
                     return {"answer":response}
-                elif "Based on your birth chart" in response:
+                elif "Based on your birth chart" in response or "Based on your Kundli" in response:
                     print(userLanguage, "userLanguage", response[response.index(",")+2:], "response")
                     return {"answer":response[response.index(",")+2:]}
                 else:
