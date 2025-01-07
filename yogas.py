@@ -1,49 +1,47 @@
-import swisseph as swe
-import datetime
+import ephem
 
-# Set the date for which you want to calculate the positions
-date = datetime.datetime(2001, 7, 15)  # Example date
-jd = swe.julday(date.year, date.month, date.day)  # Julian day for the given date
-
-# Define the planets you are interested in (Sun, Moon, Mars, etc.)
-planet_ids = [swe.SUN, swe.MOON, swe.MARS, swe.MERCURY, swe.JUPITER, swe.VENUS, swe.SATURN]
-
-# Function to get the position of planets
-def get_planetary_positions(jd):
-    positions = {}
-    for planet in planet_ids:
-        result, *planet_data = swe.calc(jd, planet)  # Get planetary data
-        lon = planet_data[0]  # Longitude of the planet
-        positions[planet] = lon
-    return positions
-
-# Function to check if planets are in conjunction (same longitude)
-def is_in_yoga(planet_positions):
-    yogas = []
+def get_yoga_and_karana(date):
+    # Use ephem to calculate planetary positions at a given time
+    observer = ephem.Observer()
+    observer.date = date
     
-    print(f"Planetary Positions on {date.strftime('%Y-%m-%d')}:")
-    for planet, pos in planet_positions.items():
-        print(f"Planet {planet} Longitude: {pos}")
+    # Get the positions of the Sun and Moon
+    sun = ephem.Sun(observer)
+    moon = ephem.Moon(observer)
+    
+    # Calculate the angular distance between Sun and Moon in degrees
+    angle_between_sun_moon = abs(sun.hlon - moon.hlon)
+    
+    # Ensure the angle is within 0 to 180 degrees
+    if angle_between_sun_moon > 180:
+        angle_between_sun_moon = 360 - angle_between_sun_moon
+    
+    # 1 Yoga = 13.33° (360° / 27)
+    yoga_index = int(angle_between_sun_moon // 13.33)
+    
+    # 1 Karana = 25.71° (360° / 14)
+    karana_index = int(angle_between_sun_moon // 25.71)
+    
+    # List of Yoga names (27 Yogas)
+    yogas = [
+        "Vishkumbh", "Priti", "Ayushman", "Sowbhagya", "Shobhana", "Atiganda", "Sukarma",
+        "Dhriti", "Shoola", "Gand", "Vridhi", "Dhruva", "Vyagha", "Harshana", "Vajra",
+        "Siddhi", "Vyatipata", "Variyana", "Parigha", "Shiva", "Sandhi", "Brahma", "Indra",
+        "Vaidhriti", "Vishkumbh", "Priti", "Ayushman", "Sowbhagya"
+    ]
+    
+    # List of Karana names (11 Karanas)
+    karanas = ["Bava", "Balava", "Kaulava", "Taitila", "Garija", "Vaidhrti", "Shakuni", 
+               "Chatushpada", "Naga", "Kimstughna", "Shakuni"]
 
-    # Check for conjunctions (all planets at the same longitude or close)
-    tolerance = 10  # Degree tolerance for conjunction (can adjust as needed)
-    planet_lonitudes = list(planet_positions.values())
+    # Yoga and Karana based on the index
+    yoga = yogas[yoga_index % len(yogas)]  # Ensure it's within 27
+    karana = karanas[karana_index % len(karanas)]  # Ensure it's within 11
+    
+    return yoga, karana
 
-    # If all planets are within a certain degree tolerance of each other
-    if all(abs(lon - planet_lonitudes[0]) <= tolerance for lon in planet_lonitudes):
-        yogas.append("Conjunction Yoga")
-
-    # Add more yogas based on other combinations (like trines, squares, etc.)
-
-    return yogas
-
-# Get planetary positions
-planet_positions = get_planetary_positions(jd)
-
-# Check for yogas
-yogas = is_in_yoga(planet_positions)
-
-if yogas:
-    print(f"Yogas on {date.strftime('%Y-%m-%d')}: {yogas}")
-else:
-    print(f"No yogas found on {date.strftime('%Y-%m-%d')}.")
+# Example usage
+date = "2025-01-07"
+yoga, karana = get_yoga_and_karana(date)
+print(f"Yoga: {yoga}")
+print(f"Karana: {karana}")

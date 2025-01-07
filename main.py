@@ -21,6 +21,9 @@ from geopy.geocoders import Nominatim
 from indic_transliteration import sanscript
 from fastapi.templating import Jinja2Templates
 import swisseph as swe
+from deep_translator import GoogleTranslator
+import ephem
+
 
 
 class Item(BaseModel):
@@ -288,7 +291,6 @@ def calculate_lagna_lord(year, month, day, hour, minute, birth_place_pin):
 
 
 
-
 # Get Birth, Natal Chart, Kundli 
 vedic_zodiac_list = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
                      'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
@@ -315,10 +317,10 @@ def calculate_planetary_positions(year, month, day, hour, minute, birth_place_pi
 
     for i, planet in enumerate(planets):
         planet_pos = swe.calc_ut(jd_ut, planet)[0]
-        planetary_positions[planet_names[i]] = {
-            'sign': get_vedic_zodiac_sign(planet_pos[0]),
-            'degree': round(planet_pos[0] % 30,2)  # degree within the sign
-        }
+        planetary_positions[planet_names[i]] = [
+            get_vedic_zodiac_sign(planet_pos[0]),
+            round(planet_pos[0] % 30,2)  # degree within the sign
+        ]
 
     return planetary_positions
 
@@ -337,10 +339,10 @@ def calculate_houses(year, month, day, hour, minute, birth_place_pin):
     for i in range(12):
         house_sign = get_vedic_zodiac_sign(cusps[i])
         house_degree = cusps[i] % 30
-        houses[f'House {i+1}'] = {
-            'sign': house_sign,
-            'degree': round(house_degree,2)
-        }
+        houses[f'House {i+1}'] = [
+            house_sign,
+            round(house_degree,2)
+        ]
 
     return houses
 
@@ -371,8 +373,23 @@ def get_full_birth_chart(year, month, day, hour, minute, birth_place_pin):
 
     return birth_chart
 
+def extract_date_time_variables():
+    # Parse the date string into datetime object
+    date_obj = datetime.now()
+    
+    # Extract year, month, day, hour, minute
+    year = date_obj.year
+    month = date_obj.month
+    day = date_obj.day
+    hour = date_obj.hour
+    minute = date_obj.minute
+    
+    print(year, month, day, hour, minute)
+    return year, month, day, hour, minute
 
-def get_nakshatra_with_dasha(year, month, day, hour, minute):
+def get_nakshatra_with_dasha():
+
+    year, month, day, hour, minute = extract_date_time_variables()
     # Function to calculate Nakshatra
     def get_nakshatra(moon_longitude):
         nakshatras = [
@@ -387,56 +404,78 @@ def get_nakshatra_with_dasha(year, month, day, hour, minute):
         return nakshatras[nakshatra_index]
 
     # Function to get the Dasha based on the Nakshatra
-    def get_dasha(nakshatra_name):
-        # Vimshottari Dasha system sequence (Planetary Lords)
-        dasha_lords = {
-            "Ashwini": ("Ketu", 7, "years"),
-            "Bharani": ("Venus", 20, "years"),
-            "Krittika": ("Sun", 6, "years"),
-            "Rohini": ("Moon", 10, "years"),
-            "Mrigashira": ("Mars", 7, "years"),
-            "Ardra": ("Rahu", 18, "years"),
-            "Punarvasu": ("Jupiter", 16, "years"),
-            "Pushya": ("Saturn", 19, "years"),
-            "Ashlesha": ("Mercury", 17, "years"),
-            "Magha": ("Ketu", 7, "years"),
-            "Purvaphalguni": ("Venus", 20, "years"),
-            "Uttara-phalguni": ("Sun", 6, "years"),
-            "Hasta": ("Moon", 10, "years"),
-            "Chitra": ("Mars", 7, "years"),
-            "Swati": ("Rahu", 18, "years"),
-            "Vishakha": ("Jupiter", 16, "years"),
-            "Anuradha": ("Saturn", 19, "years"),
-            "Jyeshtha": ("Mercury", 17, "years"),
-            "Mula": ("Ketu", 7, "years"),
-            "Purvashadha": ("Venus", 20, "years"),
-            "Uttarasadha": ("Sun", 6, "years"),
-            "Shravana": ("Moon", 10, "years"),
-            "Dhanishta": ("Mars", 7, "years"),
-            "Shatabhisha": ("Rahu", 18, "years"),
-            "Purvabhadrapada": ("Jupiter", 16, "years"),
-            "Uttara-bhadrapada": ("Saturn", 19, "years"),
-            "Revati": ("Mercury", 17, "years")
-        }
+    def get_dasha(date):
+         # Use ephem to calculate planetary positions at a given time
+        observer = ephem.Observer()
+        observer.date = date
         
-        return dasha_lords.get(nakshatra_name, "Unknown")
-
-    # Convert to Julian Day (required by Swiss Ephemeris)
-    jd_ut = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60)
-
-    # Get the position of the Moon
-    moon_longitude, _ = swe.calc(jd_ut, swe.MOON)
-
-    # Extract the longitude from the tuple
-    moon_longitude = moon_longitude[0]
+        # Get the current position of planets (e.g., Sun, Moon, etc.)
+        sun = ephem.Sun(observer)
+        moon = ephem.Moon(observer)
+        venus = ephem.Venus(observer)
+        jupiter = ephem.Jupiter(observer)
+        
+        # Return the longitudes of the planets in degrees
+        return sun, moon, venus, jupiter
+    
+    
+    # Get the Dasha for the current Nakshatra
+    planet_positions = get_dasha(f"{year}-{month}-{day}")
+    # Convert the positions from hours to degrees and print
+    for planet in planet_positions:
+        # Convert from hours (ephem.hlon) to degrees
+        longitude_in_degrees = planet.hlon * 15  # 1 hour = 15 degrees
+        if planet.name == "Moon":
+            moon_longitude = round(longitude_in_degrees,2)
+            print(moon_longitude)
 
     # Get Nakshatra name
     nakshatra_name = get_nakshatra(moon_longitude)
 
-    # Get the Dasha for the current Nakshatra
-    current_dasha = get_dasha(nakshatra_name)
+    return {"moon_longitude":moon_longitude, "current nakshatra is ":nakshatra_name, "current_dasha":moon_longitude}
 
-    return {"moon_longitude":moon_longitude, "my nakshatra is":nakshatra_name, "current_dasha":current_dasha}
+
+def get_yoga_and_karana():
+    year, month, day, hour, minute = extract_date_time_variables()
+    # Use ephem to calculate planetary positions at a given time
+    observer = ephem.Observer()
+    observer.date = f"{year}-{month}-{day}"
+    
+    # Get the positions of the Sun and Moon
+    sun = ephem.Sun(observer)
+    moon = ephem.Moon(observer)
+    
+    # Calculate the angular distance between Sun and Moon in degrees
+    angle_between_sun_moon = abs(sun.hlon - moon.hlon)
+    
+    # Ensure the angle is within 0 to 180 degrees
+    if angle_between_sun_moon > 180:
+        angle_between_sun_moon = 360 - angle_between_sun_moon
+    
+    # 1 Yoga = 13.33° (360° / 27)
+    yoga_index = int(angle_between_sun_moon // 13.33)
+    
+    # 1 Karana = 25.71° (360° / 14)
+    karana_index = int(angle_between_sun_moon // 25.71)
+    
+    # List of Yoga names (27 Yogas)
+    yogas = [
+        "Vishkumbh", "Priti", "Ayushman", "Sowbhagya", "Shobhana", "Atiganda", "Sukarma",
+        "Dhriti", "Shoola", "Gand", "Vridhi", "Dhruva", "Vyagha", "Harshana", "Vajra",
+        "Siddhi", "Vyatipata", "Variyana", "Parigha", "Shiva", "Sandhi", "Brahma", "Indra",
+        "Vaidhriti", "Vishkumbh", "Priti", "Ayushman", "Sowbhagya"
+    ]
+    
+    # List of Karana names (11 Karanas)
+    karanas = ["Bava", "Balava", "Kaulava", "Taitila", "Garija", "Vaidhrti", "Shakuni", 
+               "Chatushpada", "Naga", "Kimstughna", "Shakuni"]
+
+    # Yoga and Karana based on the index
+    yoga = yogas[yoga_index % len(yogas)]  # Ensure it's within 27
+    karana = karanas[karana_index % len(karanas)]  # Ensure it's within 11
+    
+    return {"yoga": yoga, "karana": karana}
+
 
 
 # Create object of tf-idf class
@@ -531,14 +570,16 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
     print(detect_lang_user, "detect_lang_user ++")
     
     if detect_lang_user == "hi":
-        translated_text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
+        # translated_text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
+        translated_text = GoogleTranslator(source='auto', target='en').translate(question)
         print(translated_text, "convert question ++")
         userLanguage = "hi"
         text = cnvrtLowerCase(removeHtmlTag(removeUrls(removePunctuation(removeQuatation(translated_text)))))
         print(text, "text")
     elif detect_lang_user == "Hinglish":
-        translated_text = Translator.translate_text(question, from_language='auto', to_language='hi', translator='google')
-        translated_text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
+        # translated_text = Translator.translate_text(question, from_language='auto', to_language='hi', translator='google')
+        # translated_text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
+        translated_text = GoogleTranslator(source='auto', target='en').translate(question)
         print(translated_text, "convert question Hinglish ++")
         userLanguage = "Hinglish"
         text = cnvrtLowerCase(removeHtmlTag(removeUrls(removePunctuation(removeQuatation(translated_text)))))
@@ -555,15 +596,17 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
     print(similarities, "similarities")
     
     try:
-        if similarities[1] > .90:
+        if similarities[1] > .80:
             print(df["Answer"][similarities[0]])
             if userLanguage == "hi":
-                translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
+                # translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
+                translated_text = GoogleTranslator(source='auto', target='hi').translate(df["Answer"][similarities[0]])
                 return {"answer":translated_text}
             elif userLanguage == "Hinglish":
-                translated_text = Translator.translate_text(df["Answer"][similarities[0]], from_language='auto', to_language='hi', translator='google')
-                roman_text = hindi_to_roman(roman_text)
-                return {"answer":translated_text}
+                # translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
+                translated_text = GoogleTranslator(source='auto', target='hi').translate(df["Answer"][similarities[0]])
+                roman_text = hindi_to_roman(translated_text)
+                return {"answer":roman_text}
             else:
                 return {"answer":df["Answer"][similarities[0]]}
         else:
@@ -579,6 +622,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 lagna_lord = ""
                 birth_chart = ""
                 nakshatra = ""
+                yogas = ""
                 
                 if "zodiac_sign" in entity:
                     vedic_astrological_signs = calculate_vedic_astrological_signs(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
@@ -591,23 +635,33 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 if "birth_chart" in entity:
                     birth_chart = get_full_birth_chart(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 if "nakshatra" in entity:
-                    nakshatra = get_nakshatra_with_dasha(item.year,item.month,item.day,item.hour,item.minute)
+                    nakshatra = get_nakshatra_with_dasha()
+                if "yogas" in entity:
+                    yogas = get_yoga_and_karana()
                 
-                base_question = (
-                    f"Only act as an astrologer and do not reply to questions other than astrology. "
-                    f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra} ."
-                    f"Let's say the question is '{translated_text}'. "
-                )
+                if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or yogas:
+                    base_question = (
+                        f"Only act as an astrologer and do not reply to questions other than astrology. "
+                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra, yogas} ."
+                        f"Let's say the question is '{translated_text}'. "
+                    )
+                else:
+                    base_question = (
+                        f"Act as a conversational human astrologer. "
+                        # f"Please only respond to question related to astrology and conversation. "
+                        # f"My question is: '{translated_text}'."
+                        f"{translated_text}. "
+                    )
 
                 if age < 15:
-                    print(base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is under 15 according to my kundli, please give a positive answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is under 15, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is under 15, please give a positive answer in 50 to 60 words only."
                 elif age > 50:
-                    print(base_question + "Considering my age is greater than 50 according to my kundli, please give a positive answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is greater than 50 according to my kundli, please give a positive answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is greater than 50, please give a positive answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is greater than 50, please give a positive answer in 50 to 60 words only."
                 else:
-                    print(base_question + "According to my kundli, please give a positive answer in 50 to 60 words only.")
-                    return base_question + "According to my kundli, please give a positive answer in 50 to 60 words only."
+                    print(base_question + "please give a positive answer in 50 to 60 words only.")
+                    return base_question + "please give a positive answer in 50 to 60 words only."
                 
             
             data = await request.json()
@@ -624,7 +678,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
             # Convert dictionary into Pydantic model for dot notation access
             item = Item(**item_data)
             
-            print("horoscope_data running...",item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+            # print("horoscope_data running...",item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
 
             print("template running ...")
             template = """
@@ -652,7 +706,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     "zodiac_sign": [
                         "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "moon sign","astrological sign", "aries", "taurus", "gemini",
                         "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn",
-                        "aquarius", "pisces", "lunar sign", "chandra rashi", "rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign"
+                        "aquarius", "pisces", "lunar sign", "chandra rashi", "rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign", "joint sign"
                     ],
                     "radical":["radical", "radicals", "life path number", "path number", "path no" ,"destiny number", "destiny no"],
                     "house_planets": [
@@ -664,7 +718,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     "lagna":["rahu", "ketu", "lagna lord", "ascendant lord", "lagna"],
                     "birth_chart": [
                         "kundli", "birth chart", "birth_chart" ,"horoscope chart", "natal chart", "astrological chart",
-                        "vedic chart", "janam kundli", "lagna chart", "janam patrika"
+                        "vedic chart", "janam kundli", "lagna chart", "janam patrika", "horoscope"
                     ],
                     "nakshatra": [
                         "nakshatra", "lunar mansion", "ashwini", "bharani", "kritika", "rohini",
@@ -672,6 +726,10 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                         "uttara phalguni", "hasta", "chitra", "swati", "vishakha", "anuradha", "jyestha",
                         "mula", "purva ashadha", "uttara ashadha", "shravana", "dhanishta", "shatabhisha",
                         "purva bhadrapada", "uttara bhadrapada", "revati", "dasha", "dasa", "vimshottari dasha", "mahadasha","yogini dasha"
+                    ],
+                    "yogas": [
+                        "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga",
+                        "vipareeta yoga", "laxmi yoga", "chandra mangala yoga", "karana", "yog"
                     ],
 
                     # "transits": [
@@ -694,10 +752,6 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     #     "remedy", "upaya", "astrological remedy", "gemstone", "mantra", "yantra",
                     #     "homa", "puja", "fasting", "donation"
                     # ],
-                    # "yogas": [
-                    #     "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga",
-                    #     "vipareeta yoga", "laxmi yoga", "chandra mangala yoga"
-                    # ],
                     # "timing": [
                     #     "timing", "muhurta", "auspicious time", "shubh muhurta", "marriage muhurta",
                     #     "grahapravesha muhurta", "naming ceremony muhurta", "baby naming muhurta"
@@ -713,7 +767,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     return entities
 
                 entity = extractEntity(translated_text)
-
+                print(translated_text, "translated_text")
                 print(entity, "extract entity")
                 # Generate the question "zodiac_sign" or "moon_sign" or "rising_sign"
  
@@ -730,24 +784,28 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
             if userLanguage == "hi":
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
-                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text}
                 
                 elif "Based on your birth chart" in response or "Based on your Kundli" in response:
-                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text[translated_text.index(",")+2:]}
                 
                 else:
-                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text}
                 
             elif userLanguage == "Hinglish":
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
-                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     roman_text = hindi_to_roman(translated_text)
                     print(roman_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
@@ -755,13 +813,16 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 
                 elif "Based on your birth chart" in response or "Based on your Kundli" in response:
                     response = response[response.index(",")+2:]
-                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    print(translated_text, "translated_text before apply hindi_to_roman")
                     roman_text = hindi_to_roman(translated_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}
 
                 else:
-                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     roman_text = hindi_to_roman(translated_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}

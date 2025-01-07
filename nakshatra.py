@@ -1,11 +1,25 @@
 import swisseph as swe
-import datetime
+from datetime import datetime
+
+def extract_date_time_variables():
+    # Parse the date string into datetime object
+    date_obj = datetime.now()
+    
+    # Extract year, month, day, hour, minute
+    year = date_obj.year
+    month = date_obj.month
+    day = date_obj.day
+    hour = date_obj.hour
+    minute = date_obj.minute
+    
+    print(year, month, day, hour, minute)
+    return year, month, day, hour, minute
 
 # Set the date and time
-date = datetime.datetime(2001, 7, 15, 21, 5)  # Example date (Year, Month, Day, Hour, Minute)
+year, month, day, hour, minute = extract_date_time_variables()
 
 # Convert to Julian Day (required by Swiss Ephemeris)
-jd_ut = swe.julday(date.year, date.month, date.day, date.hour + date.minute / 60.0)
+jd_ut = swe.julday(year, month, day, hour + minute / 60.0)
 
 # Get the position of the Moon
 moon_longitude, _ = swe.calc(jd_ut, swe.MOON)
