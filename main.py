@@ -45,8 +45,8 @@ return_style = "json"
 
 
 def detect_hinglish(text):
-    print(text, "text in detect_hinglish")
-    hindi_words = ['agar', 'jab','kab' ,'isliye', 'jabki', 'kyun', 'par', 'hogi' ,'phir', 'kaise', 'bas', 'hai', 'kya', 'apni' ,'koi', 'kis', 'mera', 'meri','sabhi', 'magar', 'aur', 'toh', 'lekin', 'kuch', 'kisne', 'jise', 'tum', 'he']  # Add more transliterated Hindi words
+    # print(text, "text in detect_hinglish")
+    hindi_words = ['agar', 'jab','kab' ,'isliye', 'jabki', 'kyun', 'par', 'hogi' ,'phir', 'kaise', 'bas', 'hai', 'kya', 'apni' ,'koi', 'kis', 'mera', 'meri','sabhi', 'magar', 'aur', 'toh', 'lekin', 'kuch', 'kisne', 'jise', 'tum', 'he','aaj']  # Add more transliterated Hindi words
     hinglish = [word for word in hindi_words if word.lower() in text.split()]
     print(hinglish, "hinglish +++++++++")
     if len(hinglish) > 0:
@@ -54,13 +54,24 @@ def detect_hinglish(text):
     else:
         return detect(text)
 
+a = """
+आपका वर्तमान नक्षत्र अश्विनी है, जो राशि चक्र की पहली तिमाही से मेल खाता है। आपकी वर्तमान दशा भी 8.13 है, जो इस संख्या से जुड़े ग्रह के प्रभाव की अवधि को दर्शाती है। यह संयोजन जीवन के विभिन्न क्षेत्रों में नई शुरुआत और नई शुरुआत पर ध्यान केंद्रित करने का सुझाव देता है।
+"""
+
 def hindi_to_roman(hindi_text):
+    impove_roman_word_dict = {"apa":"aap", "himdi": "hindi", "himglisha": "hinglish","maim":"main", "mem":"me","haim;":"hai," ,"hai|":"hai","haim|":"hain", "haim,":"hain","anuvada":"anuvaad", "vishesha":"vishesh","rupa":'roop', "mashina":"machine", "larnimga":"learning", "upayoga":"upyog", "apak":"aapka","apako":"aapko", "maॉdala":"model", "aura":"aur","para":"par", "thika":"thik","vrrishabha":"vrrishabh","sthitiyam":"sthitiya","vyavahara":"vyavahar","pahaluom":"pahalo",
+               "tramsaphaॉrmara":"transformer","adharita":"aadharit", "labha":"labh", "anukulita":"anukulit", "hai|":"hai", "eka":"ek", "majabuta":"majbut", "upakarana":"upkaaran","dizaina":"design","yaha.n":"yahan", "isaka":"iska","chamdr":"chandra", "mahin":"mahina", "darshat":"darshata","mithuna":"mitthun", "chamdra":"chandra", "chamdrama":"chandrama", "sujhava":"sujhav","apane":"apne","graha":"grah","udaya":"uday","prabhavita":"prabhavit","jisase":"jisse", "taya":"tay","asa":"aas","pasa":"pas","satha":"sath","batachita":"baatcheet","karate":"karte","jij~nasu":"jigyasu","samvadashila":"samvadsheel","mesha":"meesh","bhavuka":"bhavuk","khuda":"khud","atmavishvasa":"atmavishvas","pramanika":"pramanika","prastuta":"prastut","asa-pasa":"aas-paas","dekha":"dekh","hu.n":"hun","vartamana":"vartmaan","vem":"ve","ghara":"ghar","charana":"charan","imgita":"imgit","karata":"karta","asurakshaom":"asurakshao","samane":"samne","lekina":"lekin","vikasa":"vikas","mela":"mel","samkhya":"sankhya","ju.de":"jude","samyojana":"samyojan","jivana":"jivan","kshetrom":"kshetro","shuruata":"shuruat","dhyana":"dhyaan","kemdrita":"kendritra","karane":"karne"}
+
     # Transliterate from Devanagari (Hindi) to Roman
+    fresh_words = []
+
     roman_text = sanscript.transliterate(hindi_text, sanscript.DEVANAGARI, sanscript.ITRANS)
-    roman_text_lower = roman_text.lower()
-    roman_text_fresh_wrd = [word[0:-1] if word[-1] == "a" or word == "mem" else word for word in roman_text_lower.split()]
-    print(roman_text_fresh_wrd, "roman_text_fresh_wrd after modify")
-    return " ".join(roman_text_fresh_wrd)
+    for word in roman_text.lower().split():
+        if word in impove_roman_word_dict.keys():
+            fresh_words.append(impove_roman_word_dict[word])
+        else:
+            fresh_words.append(word)
+    return " ".join(fresh_words)
 
 def calculate_age(birth_year):
     current_year = datetime.now().year
@@ -477,6 +488,50 @@ def get_yoga_and_karana():
     return {"yoga": yoga, "karana": karana}
 
 
+def get_tithi_vara_lunar_month_hora():
+    # Set the Julian Day for the given date
+    year, month, day, hour, minute = extract_date_time_variables()
+    jd = swe.julday(int(year), int(month), int(day), 0)  # Julian day at midnight
+
+    # Get the Sun's and Moon's positions
+    sun_pos = swe.calc(jd, swe.SUN)
+    moon_pos = swe.calc(jd, swe.MOON)
+
+    # Extract the longitudes (in degrees) of Sun and Moon from the first element of the tuple
+    sun_longitude = sun_pos[0][0]  # First element represents longitude
+    moon_longitude = moon_pos[0][0]  # First element represents longitude
+    print(f"Sun Longitude: {sun_longitude}, Moon Longitude: {moon_longitude}")
+
+    # Calculate the Tithi (lunar day) based on the angular distance between the Sun and Moon
+    tithi_angle = (moon_longitude - sun_longitude) % 360
+    tithi_number = int(tithi_angle / 12) + 1  # Tithi ranges from 1 to 30
+
+    # Define the names of Tithis
+    tithi_names = [
+        "Pratipada", "Dvitia", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami",
+        "Ashtami", "Navami", "Dashami", "Ekadashi", "Dvadashi", "Trayodashi", "Chaturdashi",
+        "Purnima", "Pratipada", "Dvitia", "Tritiya", "Chaturthi", "Panchami", "Shashthi",
+        "Saptami", "Ashtami", "Navami", "Dashami", "Ekadashi", "Dvadashi", "Trayodashi",
+        "Chaturdashi", "Amavasya"
+    ]
+    tithi_name = tithi_names[tithi_number - 1]  # Get the name of the Tithi
+
+    # Get the Vara (day of the week) based on the Julian Day
+    day_of_week = int((jd + 1.5) % 7)  # Calculate the day of the week (0 = Sunday, 1 = Monday, etc.)
+    varas = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    vara = varas[day_of_week]
+
+    # Lunar Month (based on the position of the Moon, either the waxing or waning phase)
+    lunar_month = "Waxing" if moon_longitude < sun_longitude else "Waning"
+
+    # Calculate Hora (planetary hour)
+    hora_index = int((jd * 24) % 24)  # Get the hour of the day from the Julian Day
+    horas = ["Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn", "Rahu", "Ketu", "Sun", "Moon", "Mars", "Mercury", "Jupiter", "Venus", "Saturn"]
+    hora = horas[hora_index]
+
+    # Return the calculated values
+    return {"Tithi": [tithi_number, tithi_name], "vara": vara, "lunar_month": lunar_month, "hora":hora}
+
 
 # Create object of tf-idf class
 cv = TfidfVectorizer()
@@ -623,6 +678,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 birth_chart = ""
                 nakshatra = ""
                 yogas = ""
+                tithi = ""
                 
                 if "zodiac_sign" in entity:
                     vedic_astrological_signs = calculate_vedic_astrological_signs(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
@@ -638,30 +694,32 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     nakshatra = get_nakshatra_with_dasha()
                 if "yogas" in entity:
                     yogas = get_yoga_and_karana()
+                if "tithi" in entity:
+                    tithi = get_tithi_vara_lunar_month_hora()
                 
-                if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or yogas:
+                if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or yogas or tithi:
                     base_question = (
                         f"Only act as an astrologer and do not reply to questions other than astrology. "
-                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra, yogas} ."
+                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra, yogas, tithi} ."
                         f"Let's say the question is '{translated_text}'. "
                     )
                 else:
                     base_question = (
-                        f"Act as a conversational human astrologer. "
+                        f"Act as a conversational human astrologer and return user question like human astrologer. "
                         # f"Please only respond to question related to astrology and conversation. "
                         # f"My question is: '{translated_text}'."
-                        f"{translated_text}. "
+                        f"user question is '{translated_text}'. "
                     )
 
                 if age < 15:
-                    print(base_question + "Considering my age is under 15, please give a positive answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is under 15, please give a positive answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is under 15, please give an answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is under 15, please give an answer in 50 to 60 words only."
                 elif age > 50:
-                    print(base_question + "Considering my age is greater than 50, please give a positive answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is greater than 50, please give a positive answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is greater than 50, please give an answer in 50 to 60 words only.")
+                    return base_question + "Considering my age is greater than 50, please give an answer in 50 to 60 words only."
                 else:
-                    print(base_question + "please give a positive answer in 50 to 60 words only.")
-                    return base_question + "please give a positive answer in 50 to 60 words only."
+                    print(base_question + "please give an answer in 50 to 60 words only.")
+                    return base_question + "please give an answer in 50 to 60 words only."
                 
             
             data = await request.json()
@@ -731,7 +789,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                         "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga",
                         "vipareeta yoga", "laxmi yoga", "chandra mangala yoga", "karana", "yog"
                     ],
-
+                    "tithi": ["tithi", "tithi number", "tithi no","lunar_month", "lunar", "lunaar","vara", "varaa"],
                     # "transits": [
                     #     "transit", "gochar", "planetary transit", "saturn transit", "rahu transit",
                     #     "ketu transit", "jupiter transit", "venus transit", "retrograde", "direct motion"
@@ -789,7 +847,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text}
                 
-                elif "Based on your birth chart" in response or "Based on your Kundli" in response:
+                elif "Based on your birth chart" in response or "Based on your birth details" in response or "Based on your Kundli" in response:
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
@@ -806,12 +864,13 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     response = response[response.index("positive")+26:]
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    print(translated_text, "translated_text before apply hindi_to_roman")
                     roman_text = hindi_to_roman(translated_text)
                     print(roman_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer": roman_text}
                 
-                elif "Based on your birth chart" in response or "Based on your Kundli" in response:
+                elif "Based on your birth chart" in response or "Based on your birth details" in response or "Based on your Kundli" in response:
                     response = response[response.index(",")+2:]
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
@@ -823,6 +882,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 else:
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    print(translated_text, "translated_text before apply hindi_to_roman")
                     roman_text = hindi_to_roman(translated_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}
@@ -834,7 +894,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     response = response[response.index("positive")+26:]
                     print(userLanguage, "userLanguage", response, "response")
                     return {"answer":response}
-                elif "Based on your birth chart" in response or "Based on your Kundli" in response:
+                elif "Based on your birth chart" in response or "Based on your birth details" in response or "Based on your Kundli" in response:
                     print(userLanguage, "userLanguage", response[response.index(",")+2:], "response")
                     return {"answer":response[response.index(",")+2:]}
                 else:

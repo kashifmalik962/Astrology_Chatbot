@@ -45,13 +45,14 @@ def get_tithi_vara_lunar_month_hora(date):
     hora = horas[hora_index]
 
     # Return the calculated values
-    return f"Tithi: {tithi_number} {tithi_name}", vara, lunar_month, hora
+    return {"Tithi": [tithi_number, tithi_name], "vara": vara, "lunar_month": lunar_month, "hora":hora}
 
+print(get_tithi_vara_lunar_month_hora())
 # Example usage
 date = "2025-01-07"
-tithi, vara, lunar_month, hora = get_tithi_vara_lunar_month_hora(date)
 
-print(tithi)  # Print Tithi with the name
-print(f"Vara (Day of the Week): {vara}")
-print(f"Lunar Month: {lunar_month}")
-print(f"Hora: {hora}")
+
+# print(tithi)  # Print Tithi with the name
+# print(f"Vara (Day of the Week): {vara}")
+# print(f"Lunar Month: {lunar_month}")
+# print(f"Hora: {hora}")
