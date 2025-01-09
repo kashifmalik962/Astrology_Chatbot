@@ -25,7 +25,6 @@ from deep_translator import GoogleTranslator
 import ephem
 
 
-
 class Item(BaseModel):
     year:str=None
     month:str=None
@@ -55,12 +54,12 @@ def detect_hinglish(text):
         return detect(text)
 
 a = """
-आपका वर्तमान नक्षत्र अश्विनी है, जो राशि चक्र की पहली तिमाही से मेल खाता है। आपकी वर्तमान दशा भी 8.13 है, जो इस संख्या से जुड़े ग्रह के प्रभाव की अवधि को दर्शाती है। यह संयोजन जीवन के विभिन्न क्षेत्रों में नई शुरुआत और नई शुरुआत पर ध्यान केंद्रित करने का सुझाव देता है।
+आह, मेरे दोस्त, मुझे लगता है कि आप ज्योतिष के क्षेत्र में सत्य और प्रामाणिकता की तलाश कर रहे हैं। मैं इसे आपके साथ साझा करना चाहता हूँ: ज्योतिष एक ऐसा विज्ञान नहीं है जो सभी पर लागू हो, बल्कि यह एक जटिल प्रणाली है जिसके लिए सूक्ष्मता और समझ की आवश्यकता होती है। सितारे हमें मार्गदर्शन कर सकते हैं, लेकिन यह प्रत्येक व्यक्ति पर निर्भर करता है कि वह अपनी ब्रह्मांडीय भाषा की व्याख्या कैसे करे
 """
 
 def hindi_to_roman(hindi_text):
     impove_roman_word_dict = {"apa":"aap", "himdi": "hindi", "himglisha": "hinglish","maim":"main", "mem":"me","haim;":"hai," ,"hai|":"hai","haim|":"hain", "haim,":"hain","anuvada":"anuvaad", "vishesha":"vishesh","rupa":'roop', "mashina":"machine", "larnimga":"learning", "upayoga":"upyog", "apak":"aapka","apako":"aapko", "maॉdala":"model", "aura":"aur","para":"par", "thika":"thik","vrrishabha":"vrrishabh","sthitiyam":"sthitiya","vyavahara":"vyavahar","pahaluom":"pahalo",
-               "tramsaphaॉrmara":"transformer","adharita":"aadharit", "labha":"labh", "anukulita":"anukulit", "hai|":"hai", "eka":"ek", "majabuta":"majbut", "upakarana":"upkaaran","dizaina":"design","yaha.n":"yahan", "isaka":"iska","chamdr":"chandra", "mahin":"mahina", "darshat":"darshata","mithuna":"mitthun", "chamdra":"chandra", "chamdrama":"chandrama", "sujhava":"sujhav","apane":"apne","graha":"grah","udaya":"uday","prabhavita":"prabhavit","jisase":"jisse", "taya":"tay","asa":"aas","pasa":"pas","satha":"sath","batachita":"baatcheet","karate":"karte","jij~nasu":"jigyasu","samvadashila":"samvadsheel","mesha":"meesh","bhavuka":"bhavuk","khuda":"khud","atmavishvasa":"atmavishvas","pramanika":"pramanika","prastuta":"prastut","asa-pasa":"aas-paas","dekha":"dekh","hu.n":"hun","vartamana":"vartmaan","vem":"ve","ghara":"ghar","charana":"charan","imgita":"imgit","karata":"karta","asurakshaom":"asurakshao","samane":"samne","lekina":"lekin","vikasa":"vikas","mela":"mel","samkhya":"sankhya","ju.de":"jude","samyojana":"samyojan","jivana":"jivan","kshetrom":"kshetro","shuruata":"shuruat","dhyana":"dhyaan","kemdrita":"kendritra","karane":"karne"}
+               "tramsaphaॉrmara":"transformer","adharita":"aadharit", "labha":"labh", "anukulita":"anukulit", "hai|":"hai", "eka":"ek", "majabuta":"majbut", "upakarana":"upkaaran","dizaina":"design","yaha.n":"yahan", "isaka":"iska","chamdr":"chandra", "mahin":"mahina", "darshat":"darshata","mithuna":"mitthun", "chamdra":"chandra", "chamdrama":"chandrama", "sujhava":"sujhav","apane":"apne","graha":"grah","udaya":"uday","prabhavita":"prabhavit","jisase":"jisse", "taya":"tay","asa":"aas","pasa":"pas","satha":"sath","batachita":"baatcheet","karate":"karte","jij~nasu":"jigyasu","samvadashila":"samvadsheel","mesha":"meesh","bhavuka":"bhavuk","khuda":"khud","atmavishvasa":"atmavishvas","pramanika":"pramanika","prastuta":"prastut","asa-pasa":"aas-paas","dekha":"dekh","hu.n":"hun","vartamana":"vartmaan","vem":"ve","ghara":"ghar","charana":"charan","imgita":"imgit","karata":"karta","asurakshaom":"asurakshao","samane":"samne","lekina":"lekin","vikasa":"vikas","mela":"mel","samkhya":"sankhya","ju.de":"jude","samyojana":"samyojan","jivana":"jivan","kshetrom":"kshetro","shuruata":"shuruat","dhyana":"dhyaan","kemdrita":"kendritra","karane":"karne", "bahuta":"bahut","sumdara":"sundar","kainavasa":"kainvas","hu.n,":"hun,","aja":"aaj","akasha":"aaksh","chamaka":"chamak","akara":"aakar","nahim":"nahi","haim":"hai","sambamdha":"sambandh","chijem":"chije","vyavaharika":"vyavharik","ju.dava.n":"judava","jyotisha":"jyotish","atma":"aatm","khoja":"khoj","pratyeka":"pratyek","janma":"janm","anukula":"anukul","upayukta":"upyukt","kumdali":"kundali","madada":"madad","pasamda":"pasand","karumga":"karunga","salaha":"salah","pradana":"pradan","karumga|":"karunga","karum":"karu","samajha":"samajh","hamem":"hame","margadarshana":"margdarshan","nirbhara":"nirbhar"}
 
     # Transliterate from Devanagari (Hindi) to Roman
     fresh_words = []
@@ -70,7 +69,8 @@ def hindi_to_roman(hindi_text):
         if word in impove_roman_word_dict.keys():
             fresh_words.append(impove_roman_word_dict[word])
         else:
-            fresh_words.append(word)
+            fresh_words.append(re.sub(r"[.!\]", "", word))
+    print(fresh_words,"fresh_words")
     return " ".join(fresh_words)
 
 def calculate_age(birth_year):
