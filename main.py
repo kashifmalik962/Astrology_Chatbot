@@ -23,6 +23,11 @@ from fastapi.templating import Jinja2Templates
 import swisseph as swe
 from deep_translator import GoogleTranslator
 import ephem
+import requests
+
+
+API_KEY = "bda76f21-aad1-590f-923d-3d40f2678a1c"
+VEDIC_BASE_API = f"https://api.vedicastroapi.com/v3-json"
 
 
 class Item(BaseModel):
@@ -146,59 +151,138 @@ def get_radical_no(year, month, day, hour, minute, birth_place_pin):
 
 
 def get_horoscope_data(year, month, day, hour, minute, birth_place_pin):
-    birth_place_pin = get_lat_long(birth_place_pin)
-    
-    # Initialize Vedic Horoscope Data
-    horoscope = VedicAstro.VedicHoroscopeData(
-        int(year), int(month), int(day), int(hour), int(minute), 0,
-        utc, int(birth_place_pin[0]), int(birth_place_pin[1]), ayanamsa, house_system
-    )
-    
-    # Generate Chart
-    chart = horoscope.generate_chart()
+    print("func running...")
+    api_entity_house = "extended-horoscope/kp-houses"
+    api_entity_planet = "extended-horoscope/kp-planets"
+    lat,lon = get_lat_long(birth_place_pin)
+  
 
-    # Extract details
-    planets_data = horoscope.get_planets_data_from_chart(chart)
-    houses_data = horoscope.get_houses_data_from_chart(chart)
+    # print(lat, lon, "birth_place_lat_lon")
+    # print(VEDIC_BASE_API)
 
-    planets_houses_data = {
-        "planets_data": planets_data,
-        "houses_data": houses_data,
-    }
-    
-    # Convert planets and houses data to dictionaries
-    planets_data_list = [i._asdict() for i in planets_houses_data["planets_data"]]
-    houses_data_list = [i._asdict() for i in planets_houses_data["houses_data"]]
-
-    # Organize the data into dictionaries
-    final_data = [{"planets_data": planets_data_list}, {"houses_data": houses_data_list}]
-    
-    # Function to format planets data with house and rasi information
-    def format_planets_data(planets_data):
-        house_lookup = {house['HouseNr']: house['Rasi'] for house in planets_data[1]['houses_data']}
-        house_planets = {}
-
-        # Group planets by house
-        for planet in planets_data[0]['planets_data']:
-            house = planet['HouseNr']
-            planet_info = f"{planet['Object']}{', Retrograde' if planet['isRetroGrade'] else ''}"
-            if house not in house_planets:
-                house_planets[house] = []
-            house_planets[house].append(planet_info)
-
-        # Format the house details
-        house_details = []
-        for house, planets in house_planets.items():
-            rasi = house_lookup.get(house, 'Unknown')
-            house_details.append(f"House {house}: {rasi} ({', '.join(planets)})")
+    try:
+        response_house = requests.get(f"{VEDIC_BASE_API}/{api_entity_house}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz=5.5&api_key={API_KEY}&lang=en")
+        # print(response_house)  # Print the response_house status
         
-        return house_details
+        response_planet = requests.get(f"{VEDIC_BASE_API}/{api_entity_planet}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz=5.5&api_key={API_KEY}&lang=en")
+        
+        # print(response_planet, "response_planet")
+        
+        if response_house.status_code == 200 and response_planet.status_code == 200:
 
-    # Format and return the final horoscope data
-    formatted_planets_data = format_planets_data(final_data)
+            data_house = response_house.json()  # Parse JSON response
+            horoscope_data_house = data_house.get("response", [])
+            # print(horoscope_data)  # Debug: print parsed response
+
+            # Extract desired data
+            result = []
+            for obj in horoscope_data_house:
+                result.append({
+                    "house": obj.get("house"),
+                    "start_rasi": obj.get("start_rasi")
+                })
+
+            data_planet = response_planet.json()  # Parse JSON response
+            horoscope_data_planet = data_planet.get("response", [])
+            # print(horoscope_data_planet,"horoscope_data_planet")
+            for dic in result:
+                plants_lst = []
+                for obj,val in horoscope_data_planet.items():
+                    print(dic, obj, val)
+                    try:
+                        if dic["house"] == val.get("house"):
+                            plants_lst.append(val.get("full_name"))
+                            dic["planet"] = plants_lst
+                    except:
+                        pass
+            return result
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_house.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+
+# Function to calculate Ascendant, Sun, and Moon Signs in Vedic astrology
+def calculate_vedic_astrological_signs(year, month, day, hour, minute, birth_place_pin):
+
+    lat,lon = get_lat_long(birth_place_pin)
+    api_entity_sun_sign = "extended-horoscope/find-sun-sign"
+    api_entity_moon_sign = "extended-horoscope/find-moon-sign"
+    api_entity_rising_sign = "extended-horoscope/find-ascendant"
+
+    try:
+        sun_response = requests.get(f"{VEDIC_BASE_API}/{api_entity_sun_sign}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz=5.5&api_key={API_KEY}&lang=en")
+        moon_response = requests.get(f"{VEDIC_BASE_API}/{api_entity_moon_sign}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz=5.5&api_key={API_KEY}&lang=en")
+        rising_response = requests.get(f"{VEDIC_BASE_API}/{api_entity_rising_sign}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz=5.5&api_key={API_KEY}&lang=en")
+
+        print(sun_response, moon_response, rising_response)
+        if sun_response.status_code == 200 and moon_response.status_code == 200 and rising_response.status_code == 200:
+            sun_response_json = sun_response.json()
+            moon_response_json = moon_response.json()
+            rising_response_json = rising_response.json()
+            
+            sun_response_res = sun_response_json.get("response", [])
+            moon_response_res = moon_response_json.get("response", [])
+            rising_response_res = rising_response_json.get("response", [])
+            
+            print(sun_response_res, moon_response_res, rising_response_res, "++++++")
+
+            return {
+                "sun_sign": sun_response_res.get("sun_sign"),
+                "moon_sign": moon_response_res.get("moon_sign"),
+                "rising_sign": rising_response_res.get("ascendant")
+            }
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {sun_response.status_code, moon_response.status_code, rising_response.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+def get_kundli_signs(year, month, day, hour, minute, birth_place_pin):
+
+    lat,lon = get_lat_long(birth_place_pin)
+    api_entity = "extended-horoscope/extended-kundli-details"
     
-    return formatted_planets_data
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_entity}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz=5.5&api_key={API_KEY}&lang=en")
 
+        print(response)
+        if response.status_code == 200:
+            response_json = response.json()
+
+            response_res = response_json.get("response", [])
+            print(response_res, "++++++")
+
+            return {
+                "gana": response_res.get("gana"),
+                "yoni": response_res.get("yoni"),
+                "vasya": response_res.get("vasya"),
+                "nadi": response_res.get("nadi"),
+                "varna": response_res.get("varna"),
+                "paya": response_res.get("paya"),
+                "tatva": response_res.get("tatva"),
+                "life_stone": response_res.get("life_stone"),
+                "lucky_stone": response_res.get("lucky_stone"),
+                "fortune_stone": response_res.get("fortune_stone"),
+                "ascendant_sign": response_res.get("ascendant_sign"),
+                "ascendant_nakshatra": response_res.get("ascendant_nakshatra"),
+                "rasi": response_res.get("rasi"),
+                "rasi_lord": response_res.get("rasi_lord"),
+                "nakshatra": response_res.get("nakshatra"),
+                "karana": response_res.get("karana"),
+                "yoga": response_res.get("yoga")
+            }
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
 
 # Function to get Vedic Zodiac Sign based on degree (with Lahiri Ayanamsha shift)
 def get_vedic_zodiac_sign(degree):
@@ -209,34 +293,6 @@ def get_vedic_zodiac_sign(degree):
     degree = (degree - 24) % 360
     return vedic_zodiac_list[int(degree // 30)]
 
-# Function to calculate Ascendant, Sun, and Moon Signs in Vedic astrology
-def calculate_vedic_astrological_signs(year, month, day, hour, minute, birth_place_pin):
-
-    birth_place_lat_lon = get_lat_long(birth_place_pin)
-
-    # Convert birthdate to Julian Date
-    jd_ut = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60.0)
-    
-    # Calculate Ascendant (Rising sign) with Lahiri Ayanamsha
-    cusps, _ = swe.houses(jd_ut, birth_place_lat_lon[0], birth_place_lat_lon[1], b'P')
-    ascendant_degree = cusps[0]  # Ascendant is the first house cusp
-    rising_sign = get_vedic_zodiac_sign(ascendant_degree)
-    
-    # Calculate Sun and Moon Signs in Sidereal Zodiac
-    sun_pos = swe.calc_ut(jd_ut, swe.SUN)[0]
-    moon_pos = swe.calc_ut(jd_ut, swe.MOON)[0]
-    sun_sign = get_vedic_zodiac_sign(sun_pos[0])
-    moon_sign = get_vedic_zodiac_sign(moon_pos[0])
-    
-    print('Rising Sign is', rising_sign,
-        'Sun Sign is', sun_sign,
-        'Moon Sign is', moon_sign)
-    
-    return {
-        'Rising Sign': rising_sign,
-        'Sun Sign': sun_sign,
-        'Moon Sign': moon_sign
-    }
 
 
 # Zodiac signs and their rulers
@@ -679,13 +735,16 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 nakshatra = ""
                 yogas = ""
                 tithi = ""
+                kundli_signs = ""
                 
                 if "zodiac_sign" in entity:
                     vedic_astrological_signs = calculate_vedic_astrological_signs(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
-                if "radical" in entity:
-                    radical_no = get_radical_no(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 if "house_planets" in entity:
                     horoscope_data = get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "kundli_signs" in entity:
+                    kundli_signs = get_kundli_signs(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "radical" in entity:
+                    radical_no = get_radical_no(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 if "lagna" in entity:
                     lagna_lord = calculate_lagna_lord(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 if "birth_chart" in entity:
@@ -696,11 +755,12 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     yogas = get_yoga_and_karana()
                 if "tithi" in entity:
                     tithi = get_tithi_vara_lunar_month_hora()
+                    
                 
-                if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or yogas or tithi:
+                if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or yogas or tithi or kundli_signs:
                     base_question = (
                         f"Only act as an astrologer and do not reply to questions other than astrology. "
-                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra, yogas, tithi} ."
+                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra, yogas, tithi, kundli_signs} ."
                         f"Let's say the question is '{translated_text}'. "
                     )
                 else:
@@ -762,22 +822,24 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 # Define keywords and entities
                 keywords = {
                     "zodiac_sign": [
-                        "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "moon sign","astrological sign", "aries", "taurus", "gemini",
+                        "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "moon sign", "moon","sun" ,"rising", "astrological sign", "aries", "taurus", "gemini",
                         "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn",
                         "aquarius", "pisces", "lunar sign", "chandra rashi", "rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign", "joint sign"
                     ],
-                    "radical":["radical", "radicals", "life path number", "path number", "path no" ,"destiny number", "destiny no"],
                     "house_planets": [
-                        "house", "bhava", "first house", "second house", "third house", "fourth house",
+                        "house", "houses","bhava", "first house", "second house", "third house", "fourth house",
                         "fifth house", "sixth house", "seventh house", "eighth house", "ninth house",
                         "tenth house", "eleventh house", "twelfth house", "lagna bhava","planet", "planets","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus",
                         "saturn", 
                     ],
+                    "kundli_signs":["kundli_signs", "gana", "yoni", "vasya", "nadi","varna","paya","tatva","life stone", "lucky stone", "horoscope", "kundli signs","kundli sign", "birth chart", "signs", "natal chart", "kundli", "birth_chart", "horoscope chart"],
+
+                    "radical":["radical", "radicals", "life path number", "path number", "path no" ,"destiny number", "destiny no"],
                     "lagna":["rahu", "ketu", "lagna lord", "ascendant lord", "lagna"],
-                    "birth_chart": [
-                        "kundli", "birth chart", "birth_chart" ,"horoscope chart", "natal chart", "astrological chart",
-                        "vedic chart", "janam kundli", "lagna chart", "janam patrika", "horoscope"
-                    ],
+                    # "birth_chart": [
+                    #     "kundli", "birth chart", "birth_chart" ,"horoscope chart", "natal chart", "astrological chart",
+                    #     "vedic chart", "janam kundli", "lagna chart", "janam patrika", "horoscope"
+                    # ],
                     "nakshatra": [
                         "nakshatra", "lunar mansion", "ashwini", "bharani", "kritika", "rohini",
                         "mrigashira", "ardra", "punarvasu", "pushya", "ashlesha", "magha", "purva phalguni",
@@ -865,7 +927,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(translated_text, "translated_text before apply hindi_to_roman")
-                    roman_text = hindi_to_roman(translated_text)
+                    roman_text = await hindi_to_roman(translated_text)
                     print(roman_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer": roman_text}
@@ -875,7 +937,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(translated_text, "translated_text before apply hindi_to_roman")
-                    roman_text = hindi_to_roman(translated_text)
+                    roman_text = await hindi_to_roman(translated_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}
 
@@ -883,7 +945,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
                     translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(translated_text, "translated_text before apply hindi_to_roman")
-                    roman_text = hindi_to_roman(translated_text)
+                    roman_text = await hindi_to_roman(translated_text)
                     print(userLanguage, "userLanguage", roman_text, "roman_text")
                     return {"answer":roman_text}
                 
