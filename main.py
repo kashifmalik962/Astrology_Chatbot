@@ -519,29 +519,18 @@ def get_pitra_dosh(year, month, day, hour, minute, birth_place_pin):
         return {}
 
 
-def calculate_mahadasha_differences(response):
-    mahadasha = response["mahadasha"]
-    mahadasha_order = response["mahadasha_order"]
-    start_year = response["start_year"]
-
-    differences = {}
+# Calculate the filtered mahadasha list
+def calculate_mahadasha_differences(mahadasha, mahadasha_order, start_year):
+    filter_mahadasha = []
+    previous_date = str(start_year)  # Start year as the initial date
 
     for i in range(len(mahadasha)):
-        # Extract the year from the current mahadasha_order date
-        current_year = datetime.strptime(mahadasha_order[i], "%a %b %d %Y").year
+        # Current mahadasha and end date
+        end_date = mahadasha_order[i] if i < len(mahadasha_order) else None
+        filter_mahadasha.append(f"{mahadasha[i]} {previous_date} to {end_date}")
+        previous_date = end_date  # Update the previous date to the current end date
 
-        if i == 0:
-            # For the first mahadasha, calculate from start_year
-            previous_year = start_year
-        else:
-            # For subsequent mahadashas, calculate from the previous mahadasha's year
-            previous_year = datetime.strptime(mahadasha_order[i - 1], "%a %b %d %Y").year
-
-        # Calculate the difference in years
-        year_difference = current_year - previous_year
-        differences[mahadasha[i].lower()] = f"{year_difference} years"
-
-    return differences
+    return filter_mahadasha
 
 
 def get_mahadasha(year, month, day, hour, minute, birth_place_pin):
@@ -553,19 +542,71 @@ def get_mahadasha(year, month, day, hour, minute, birth_place_pin):
     try:
         response = requests.get(f"{VEDIC_BASE_API}/{api_entity}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz={tz}&api_key={API_KEY}&lang={lang}")
 
+        # print(response)
+        if response.status_code == 200:
+            response_json = response.json()
+
+            # print(response_json)
+            response_res = response_json.get("response", [])
+            print(response_res, "++++++")
+
+            result = calculate_mahadasha_differences(response_res["mahadasha"], response_res["mahadasha_order"], response_res["start_year"])
+            
+            return {"mahadasha":result, "current_date_is":datetime.now().date()}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+
+# Function to calculate filtered antardasha list
+def calculate_antardasha(antardashas, antardasha_order):
+    filter_antardasha = []
+
+    # Iterate over each set of antardashas and their corresponding orders
+    for i in range(len(antardashas)):
+        current_antardasha = antardashas[i]
+        current_order = antardasha_order[i]
+        previous_date = None
+
+        for j in range(len(current_antardasha)):
+            # Current antardasha and start/end dates
+            start_date = current_order[j] if j < len(current_order) else None
+            end_date = current_order[j + 1] if j + 1 < len(current_order) else None
+
+            # Append to the result list
+            filter_antardasha.append(f"{current_antardasha[j]} {start_date} to {end_date}")
+            previous_date = end_date
+
+    return filter_antardasha
+
+
+def get_antardasha(year, month, day, hour, minute, birth_place_pin):
+    lat,lon = get_lat_long(birth_place_pin)
+    api_entity = "dashas/antar-dasha"
+    tz = 5.5
+    lang = "en"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_entity}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz={tz}&api_key={API_KEY}&lang={lang}")
+
         print(response)
         if response.status_code == 200:
             response_json = response.json()
 
-            print(response_json)
+            # print(response_json)
             response_res = response_json.get("response", [])
-            print(response_res, "++++++")
+            # print(response_res, "++++++")
 
-            # mahadasha = response_res["mahadasha"]
-            # mahadasha_order = response_res["mahadasha_order"]
-            # start_year = response_res["start_year"]
+            antardasha = response_res["antardashas"]
+            antardasha_order = response_res["antardasha_order"]
 
-            result = calculate_mahadasha_differences(response_res)
+            # print(antardasha, antardasha_order, "antardasha, antardasha_order")
+
+            result = calculate_antardasha(antardasha, antardasha_order)
             
 
             return result
@@ -616,37 +657,6 @@ def calculate_rahu_ketu(jd):
     ketu_sign = int(ketu_position // 30) + 1
 
     return rahu_position[0], rahu_sign, ketu_position, ketu_sign
-
-# Function to calculate the Ascendant and its Lord
-def calculate_lagna_lord(year, month, day, hour, minute, birth_place_pin):
-
-    birth_place_lat_lon = get_lat_long(birth_place_pin)
-
-    # Convert date and time to Julian Day
-    jd = swe.julday(int(year), int(month), int(day), int(hour) + int(minute) / 60.0)
-    
-    # Calculate sidereal time
-    sidereal_time = swe.sidtime(jd)
-    
-    # Calculate the Ascendant (Lagna)
-    ascendant = swe.houses(jd, birth_place_lat_lon[0], birth_place_lat_lon[1], b'P')[0][0]  # 'P' for Placidus house system
-    ascendant_sign = int(ascendant // 30) + 1  # Divide by 30 to get the zodiac sign (1-12)
-
-    # Determine the Lagna Lord
-    lagna_lord = ZODIAC_RULERS[ascendant_sign]
-
-    # Calculate Rahu and Ketu
-    rahu_position, rahu_sign, ketu_position, ketu_sign = calculate_rahu_ketu(jd)
-
-    return {
-        "ascendant": ascendant,
-        "ascendant_sign": ascendant_sign,
-        "lagna_lord": lagna_lord,
-        "rahu_position": rahu_position,
-        "rahu_sign": rahu_sign,
-        "ketu_position": ketu_position,
-        "ketu_sign": ketu_sign
-    }
 
 
 
@@ -951,6 +961,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 manglik_dosh = ""
                 pitra_dosh = ""
                 mahadasha = ""
+                antardasha = ""
                 
                 if "zodiac_sign" in entity:
                     vedic_astrological_signs = calculate_vedic_astrological_signs(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
@@ -976,17 +987,18 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     pitra_dosh = get_pitra_dosh(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 if "mahadasha" in entity:
                     mahadasha = get_mahadasha(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
-                if "lagna" in entity:
-                    lagna_lord = calculate_lagna_lord(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                if "antardasha" in entity:
+                    antardasha = get_antardasha(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                
                 # if "birth_chart" in entity:
                 #     birth_chart = get_full_birth_chart(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 # if "nakshatra" in entity:
                 #     nakshatra = get_nakshatra_with_dasha()
 
-                if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or tithi_yoga or kundli_signs or moon_rising_set or sun_rising_set or mangal_dosh or kaalsarp_dosh or manglik_dosh or pitra_dosh or mahadasha:
+                if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or tithi_yoga or kundli_signs or moon_rising_set or sun_rising_set or mangal_dosh or kaalsarp_dosh or manglik_dosh or pitra_dosh or mahadasha or antardasha:
                     base_question = (
                         f"Only act as an astrologer and do not reply to questions other than astrology. "
-                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra, tithi_yoga, kundli_signs,moon_rising_set, sun_rising_set, mangal_dosh, kaalsarp_dosh, manglik_dosh, pitra_dosh, mahadasha} ."
+                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data,lagna_lord, birth_chart,nakshatra, tithi_yoga, kundli_signs,moon_rising_set, sun_rising_set, mangal_dosh, kaalsarp_dosh, manglik_dosh, pitra_dosh, mahadasha, antardasha} ."
                         f"Let's say the question is '{translated_text}'. "
                     )
                 else:
@@ -995,7 +1007,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                         f"My birth details  {item.day}/{item.month}/{item.year} {item.hour}:{item.minute} pincode={item.birth_place_pin} "
                         f"user question is '{translated_text}'. "
                     )
-
+                    
                 if age < 15:
                     print(base_question + "Considering my age is under 15, please give an answer in 50 to 60 words only.")
                     return base_question + "Considering my age is under 15, please give an answer in 50 to 60 words only."
@@ -1043,18 +1055,17 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
             age = calculate_age(item.year)
             # Generate question and get response
             try:
-                import re
                 # Define keywords and entities
                 keywords = {
                     "zodiac_sign": [
-                        "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "moon sign","sun sin", "moon sin", "rising", "astrological sign", "aries", "taurus", "gemini",
+                        "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "lagna", "moon sign","sun sin", "moon sin", "rising", "astrological sign", "aries", "taurus", "gemini",
                         "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn",
                         "aquarius", "pisces", "lunar sign", "chandra rashi", "rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign", "joint sign"
                     ],
                     "house_planets": [
                         "house", "houses","bhava", "first house", "second house", "third house", "fourth house",
                         "fifth house", "sixth house", "seventh house", "eighth house", "ninth house",
-                        "tenth house", "eleventh house", "twelfth house", "lagna bhava","planet", "planets","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus",
+                        "tenth house", "eleventh house", "twelfth house", "planet", "planets","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus",
                         "saturn", 
                     ],
                     "kundli_signs":["kundli_signs", "gana", "yoni", "vasya", "nadi","varna","paya","tatva","life stone", "lucky stone", "horoscope", "kundli signs","kundli sign", "birth chart", "signs", "natal chart", "kundli", "birth_chart", "horoscope chart"],
@@ -1078,7 +1089,9 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
 
                     "pitra_dosh": ["pitra_dosh", "pitra dosh", "pitra dosha", "pitra dos", "pitra", "pitar", "pitar dos", "pitar dosh"],
                     
-                    "mahadasha": ["mahadasha", "mahadasa", "mahadasha", "dasha", "dashas", "mahdasa", "mahdasha", "mahaadasha"]
+                    "mahadasha": ["mahadasha", "mahadasa", "mahadasha", "mahdasa", "mahdasha", "mahaadasha"],
+                    
+                    "antardasha":["antardasha", "antardasa","anterdasha", "anterdasa"],
                     # "lagna":["rahu", "ketu", "lagna lord", "ascendant lord", "lagna"],
                     # "birth_chart": [
                     #     "kundli", "birth chart", "birth_chart" ,"horoscope chart", "natal chart", "astrological chart",
@@ -1253,7 +1266,7 @@ async def palmistry(file: UploadFile = File(...)):
         # Step 2: Principal line detection
         net = UNet(n_channels=3, n_classes=1)
         net.load_state_dict(torch.load(path_to_model, map_location=torch.device("cpu")))
-        detect(net, path_to_warped_image_clean, path_to_palmline_image, resize_value)
+        detected(net, path_to_warped_image_clean, path_to_palmline_image, resize_value)
 
         # Step 3: Line classification
         lines = classify(path_to_palmline_image)

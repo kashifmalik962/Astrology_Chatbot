@@ -1,6 +1,18 @@
-text = "here are the times for Moon, Sun rise and set:- Moon rises at 5:10 PM- Moon sets at 7:00 AM- Sun rises at 7:15 AM- Sun sets at 5:44 PM"
 
-# Remove all '\n'
-cleaned_text = text.replace("\n", " ")
+from datetime import datetime
 
-print(cleaned_text)
+
+def get_current_date_time():
+    date = datetime.now().date()
+    time = datetime.now().time()
+
+    day, month, year = date.day, date.month, date.year
+    hour, minute = time.hour, time.minute
+    current_date, current_time = f"{day}/{month}/{year}", f"{hour}:{minute}"
+
+    return current_date, current_time
+
+
+date, time = get_current_date_time()
+
+print(date)

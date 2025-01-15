@@ -2,7 +2,7 @@ import numpy as np
 from PIL import Image
 import torch
 
-def detect(net, jpeg_dir, output_dir, resize_value, device=torch.device('cpu')):
+def detected(net, jpeg_dir, output_dir, resize_value, device=torch.device('cpu')):
     pil_img = Image.open(jpeg_dir)
     img = np.asarray(pil_img.resize((resize_value, resize_value), resample=Image.NEAREST)) / 255
     img = torch.tensor(img, dtype=torch.float32).unsqueeze(0).permute(0,3,1,2).to(device)
