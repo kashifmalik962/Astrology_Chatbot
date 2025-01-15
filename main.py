@@ -1,5 +1,8 @@
-from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect, Request
+from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect, Request, UploadFile, File
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from io import BytesIO
+import shutil
 import pandas as pd
 import re
 from nltk.corpus import stopwords
@@ -24,6 +27,13 @@ import swisseph as swe
 from deep_translator import GoogleTranslator
 import ephem
 import requests
+import os
+from palmistry.code.tools import *
+from palmistry.code.model import *
+from palmistry.code.classifi import *
+from palmistry.code.rectification import *
+from palmistry.code.detection import *
+from palmistry.code.measurement import *
 
 
 API_KEY = "bda76f21-aad1-590f-923d-3d40f2678a1c"
@@ -59,13 +69,13 @@ def detect_hinglish(text):
         return detect(text)
 
 a = """"
-आज (सोमवार, पूर्णिमा, आर्द्रा नक्षत्र) का योग वैधृति है। यह शांति और स्थिरता की अवधि को इंगित करता है, जिसमें आत्मनिरीक्षण और आत्म-प्रतिबिंब पर ध्यान केंद्रित किया जाता है। अपने जीवन में संतुलन और सद्भाव की भावना की अपेक्षा करें, साथ ही अधिक स्थिरता और शांति प्राप्त करने के लिए अपने दृष्टिकोण को पुनर्मूल्यांकन और समायोजित करने के अवसर भी मिलेंगे
+मंगल के 8वें भाव में होने और 11वें, 2वें और 3वें भाव को देखने के कारण आप पर मांगलिक दोष है। आपका काल-सर्प दोष से भी थोड़ा संबंध है, लेकिन इसे महत्वपूर्ण नहीं माना जाता है। इसके अतिरिक्त, आप 28% मांगलिक हैं, जो कि दोष का हल्का रूप है
 """
 
 def hindi_to_roman(hindi_text):
     # print("hindi_to_roman func running...")
     impove_roman_word_dict = {"apa":"aap", "himdi": "hindi", "himglisha": "hinglish","maim":"main", "mem":"me","haim;":"hai," ,"hai|":"hai","haim|":"hain", "haim,":"hain","anuvada":"anuvaad", "vishesha":"vishesh","rupa":'roop', "mashina":"machine", "larnimga":"learning", "upayoga":"upyog", "apak":"aapka","apako":"aapko", "maॉdala":"model", "aura":"aur","para":"par", "thika":"thik","vrrishabha":"vrrishabh","sthitiyam":"sthitiya","vyavahara":"vyavahar","pahaluom":"pahalo",
-               "tramsaphaॉrmara":"transformer","adharita":"aadharit", "labha":"labh", "anukulita":"anukulit", "hai|":"hai", "eka":"ek", "majabuta":"majbut", "upakarana":"upkaaran","dizaina":"design","yaha.n":"yahan", "isaka":"iska","chamdr":"chandra", "mahin":"mahina", "darshat":"darshata","mithuna":"mitthun", "chamdra":"chandra", "chamdrama":"chandrama", "sujhava":"sujhav","apane":"apne","graha":"grah","udaya":"uday","prabhavita":"prabhavit","jisase":"jisse", "taya":"tay","asa":"aas","pasa":"pas","satha":"sath","batachita":"baatcheet","karate":"karte","jij~nasu":"jigyasu","samvadashila":"samvadsheel","mesha":"meesh","bhavuka":"bhavuk","khuda":"khud","atmavishvasa":"atmavishvas","pramanika":"pramanika","prastuta":"prastut","asa-pasa":"aas-paas","dekha":"dekh","hu.n":"hun","vartamana":"vartmaan","vem":"ve","ghara":"ghar","charana":"charan","imgita":"imgit","karata":"karta","asurakshaom":"asurakshao","samane":"samne","lekina":"lekin","vikasa":"vikas","mela":"mel","samkhya":"sankhya","ju.de":"jude","samyojana":"samyojan","jivana":"jivan","kshetrom":"kshetro","shuruata":"shuruat","dhyana":"dhyaan","kemdrita":"kendritra","karane":"karne", "bahuta":"bahut","sumdara":"sundar","kainavasa":"kainvas","hu.n,":"hun,","aja":"aaj","akasha":"aaksh","chamaka":"chamak","akara":"aakar","nahim":"nahi","haim":"hai","sambamdha":"sambandh","chijem":"chije","vyavaharika":"vyavharik","ju.dava.n":"judava","jyotisha":"jyotish","atma":"aatm","khoja":"khoj","pratyeka":"pratyek","janma":"janm","anukula":"anukul","upayukta":"upyukt","kumdali":"kundali","madada":"madad","pasamda":"pasand","karumga":"karunga","salaha":"salah","pradana":"pradan","karumga|":"karunga","karum":"karu","samajha":"samajh","hamem":"hame","margadarshana":"margdarshan","nirbhara":"nirbhar", "svabhava":"svabhav","samketa":"sanket","apaka":"aapka","jala":"jal","vahaka":"vahak","svatamtrata":"swatantra","sparsha":"sparsh","manaviya":"manviya","mulamka":"mulank","shukra":"shukr","poshana":"poshan","bhara":"bhar","dekhabhala":"dekhbhal","bana":"ban","apamem":"aapme","aksara":"aksar","parivara":"parivar","shamti":"shanti","sthapita":"sthapit","sahayoga":"sahyog","jisamem":"jisme","dhyana":"dhyan","shamta":"shant","dina":"din","manasika":"mansik","amtarika":"aantarik","samtulana":"santulan","sadbhava":"sadbhav","karem":"kare","adhika":"adhik","prapta":"prapt","avasara":"avasar"}
+               "tramsaphaॉrmara":"transformer","adharita":"aadharit", "labha":"labh", "anukulita":"anukulit", "hai|":"hai", "eka":"ek", "majabuta":"majbut", "upakarana":"upkaaran","dizaina":"design","yaha.n":"yahan", "isaka":"iska","chamdr":"chandra", "mahin":"mahina", "darshat":"darshata","mithuna":"mitthun", "chamdra":"chandra", "chamdrama":"chandrama", "sujhava":"sujhav","apane":"apne","graha":"grah","udaya":"uday","prabhavita":"prabhavit","jisase":"jisse", "taya":"tay","asa":"aas","pasa":"pas","satha":"sath","batachita":"baatcheet","karate":"karte","jij~nasu":"jigyasu","samvadashila":"samvadsheel","mesha":"meesh","bhavuka":"bhavuk","khuda":"khud","atmavishvasa":"atmavishvas","pramanika":"pramanika","prastuta":"prastut","asa-pasa":"aas-paas","dekha":"dekh","hu.n":"hun","vartamana":"vartmaan","vem":"ve","ghara":"ghar","charana":"charan","imgita":"imgit","karata":"karta","asurakshaom":"asurakshao","samane":"samne","lekina":"lekin","vikasa":"vikas","mela":"mel","samkhya":"sankhya","ju.de":"jude","samyojana":"samyojan","jivana":"jivan","kshetrom":"kshetro","shuruata":"shuruat","dhyana":"dhyaan","kemdrita":"kendritra","karane":"karne", "bahuta":"bahut","sumdara":"sundar","kainavasa":"kainvas","hu.n,":"hun,","aja":"aaj","akasha":"aaksh","chamaka":"chamak","akara":"aakar","nahim":"nahi","haim":"hai","sambamdha":"sambandh","chijem":"chije","vyavaharika":"vyavharik","ju.dava.n":"judava","jyotisha":"jyotish","atma":"aatm","khoja":"khoj","pratyeka":"pratyek","janma":"janm","anukula":"anukul","upayukta":"upyukt","kumdali":"kundali","madada":"madad","pasamda":"pasand","karumga":"karunga","salaha":"salah","pradana":"pradan","karumga|":"karunga","karum":"karu","samajha":"samajh","hamem":"hame","margadarshana":"margdarshan","nirbhara":"nirbhar", "svabhava":"svabhav","samketa":"sanket","apaka":"aapka","jala":"jal","vahaka":"vahak","svatamtrata":"swatantra","sparsha":"sparsh","manaviya":"manviya","mulamka":"mulank","shukra":"shukr","poshana":"poshan","bhara":"bhar","dekhabhala":"dekhbhal","bana":"ban","apamem":"aapme","aksara":"aksar","parivara":"parivar","shamti":"shanti","sthapita":"sthapit","sahayoga":"sahyog","jisamem":"jisme","dhyana":"dhyan","shamta":"shant","dina":"din","manasika":"mansik","amtarika":"aantarik","samtulana":"santulan","sadbhava":"sadbhav","karem":"kare","adhika":"adhik","prapta":"prapt","avasara":"avasar","bhava":"bhav","karana":"karan","mamgalika":"mangalik", "dosha":"dosh","mahatvapurna":"mahatvapurn","isake":"iske","atirikta":"atirikt", "mamgala":"mangal"}
 
     # Transliterate from Devanagari (Hindi) to Roman
     fresh_words = []
@@ -968,10 +978,11 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     mahadasha = get_mahadasha(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 if "lagna" in entity:
                     lagna_lord = calculate_lagna_lord(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
-                if "birth_chart" in entity:
-                    birth_chart = get_full_birth_chart(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
-                if "nakshatra" in entity:
-                    nakshatra = get_nakshatra_with_dasha()
+                # if "birth_chart" in entity:
+                #     birth_chart = get_full_birth_chart(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                # if "nakshatra" in entity:
+                #     nakshatra = get_nakshatra_with_dasha()
+
                 if vedic_astrological_signs or radical_no or horoscope_data or lagna_lord or birth_chart or nakshatra or tithi_yoga or kundli_signs or moon_rising_set or sun_rising_set or mangal_dosh or kaalsarp_dosh or manglik_dosh or pitra_dosh or mahadasha:
                     base_question = (
                         f"Only act as an astrologer and do not reply to questions other than astrology. "
@@ -981,8 +992,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 else:
                     base_question = (
                         f"Act as a conversational human astrologer and return user question like human astrologer. "
-                        # f"Please only respond to question related to astrology and conversation. "
-                        # f"My question is: '{translated_text}'."
+                        f"My birth details  {item.day}/{item.month}/{item.year} {item.hour}:{item.minute} pincode={item.birth_place_pin} "
                         f"user question is '{translated_text}'. "
                     )
 
@@ -1056,19 +1066,19 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                         "vipareeta yoga", "laxmi yoga", "chandra mangala yoga", "karana", "yog","tithi", "tithi number", "tithi no","lunar_month", "lunar", "lunaar","vara", "varaa","rahukaal", "rahukal", "rahu","nakshatra", "naksatra", "naksatraa", "nakstra", "naksatar","karan","gulika","sun position", "moon position","rasi", "rashi","rasee","rashee", "day"
                     ],
                     
-                    "moon_rising_set":["moon_rising_set", "moon", "moon rise", "moon set", "moon rice", "mon rice", "moon sets","mon", "moon rising", "mon rising", "rising","rise"],
+                    "moon_rising_set":["moon_rising_set", "moon rise", "moon set", "moon rice", "mon rice", "moon sets", "moon rising", "moon risings","mon rising", "moon ricing","mon rise"],
                     
-                    "sun_rising_set":["sun_rising_set", "sun", "sun rise", "sun set", "sun rice", "sun rice", "sun sets","sun", "sun rising", "sun rising","rising", "rise"],
+                    "sun_rising_set":["sun_rising_set", "sun rise", "sun set", "sun rice", "san rice", "sun sets", "sun rising", "sun risings","san rising", "sun ricing","san rise"],
                     
-                    "mangal_dosh":["mangal_dosh", "mangal dosh", "mangal dos", "mangal", "mangel", "mangel dos", "mangel dosh"],
+                    "mangal_dosh":["mangal_dosh", "mangal dosh", "mangal dosha", "mangal dos", "mangal", "mangel", "mangel dos", "mangel dosh", "dosha"],
                     
-                    "kaalsarp_dosh": ["kaalsarp_dosh", "kaalsarp dosh", "kaalsarp dos", "kaalsarp", "kalsarp", "kalsarp dos", "kalsarp dosh"],
+                    "kaalsarp_dosh": ["kaalsarp_dosh", "kaalsarp dosh", "kaalsarp dosha", "kaalsarp dos", "kaalsarp", "kalsarp", "kalsarp dos", "kalsarp dosh"],
 
-                    "manglik_dosh" : ["manglik_dosh", "manglik dosh", "manglik dos", "manglik", "manglek", "manglek dos", "manglek dosh"],
+                    "manglik_dosh" : ["manglik_dosh", "manglik dosh", "manglik dosha", "manglik dos", "manglik", "manglek", "manglek dos", "manglek dosh"],
 
-                    "pitra_dosh": ["pitra_dosh", "pitra dosh", "pitra dos", "pitra", "pitar", "pitar dos", "pitar dosh"],
+                    "pitra_dosh": ["pitra_dosh", "pitra dosh", "pitra dosha", "pitra dos", "pitra", "pitar", "pitar dos", "pitar dosh"],
                     
-                    "mahadasha": ["mahadasha", "mahadasa", "mahadasha", "dasha", "dashas", "mahdasa", "mahdasha"]
+                    "mahadasha": ["mahadasha", "mahadasa", "mahadasha", "dasha", "dashas", "mahdasa", "mahdasha", "mahaadasha"]
                     # "lagna":["rahu", "ketu", "lagna lord", "ascendant lord", "lagna"],
                     # "birth_chart": [
                     #     "kundli", "birth chart", "birth_chart" ,"horoscope chart", "natal chart", "astrological chart",
@@ -1193,6 +1203,71 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     return {"answer":response.replace("\n", " ")}
     except:
         return {"answer":"Not Found"}
+
+
+
+@app.post("/palmistry")
+async def palmistry(file: UploadFile = File(...)):
+    try:
+        # Save uploaded file to a temporary directory
+        temp_dir = "./input"
+        os.makedirs(temp_dir, exist_ok=True)
+        input_file_path = os.path.join(temp_dir, file.filename)
+
+        with open(input_file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Define paths for intermediate and output results
+        results_dir = "./palmistry/code/results"
+        os.makedirs(results_dir, exist_ok=True)
+
+        resize_value = 256
+        path_to_clean_image = os.path.join(results_dir, "palm_without_background.jpg")
+        path_to_warped_image = os.path.join(results_dir, "warped_palm.jpg")
+        path_to_warped_image_clean = os.path.join(results_dir, "warped_palm_clean.jpg")
+        path_to_warped_image_mini = os.path.join(results_dir, "warped_palm_mini.jpg")
+        path_to_warped_image_clean_mini = os.path.join(results_dir, "warped_palm_clean_mini.jpg")
+        path_to_palmline_image = os.path.join(results_dir, "palm_lines.png")
+        path_to_model = "./palmistry/code/checkpoint/checkpoint_aug_epoch70.pth"
+        path_to_result = os.path.join(results_dir, "result.jpg")
+
+        # Step 0: Preprocess the image (remove background)
+        remove_background(input_file_path, path_to_clean_image)
+
+        # Step 1: Palm image rectification
+        warp_result = warp(input_file_path, path_to_warped_image)
+        if warp_result is None:
+            print_error()
+            return JSONResponse(status_code=400, content={"error": "Warping failed. Unable to process the image."})
+
+        # Clean up and resize the warped image
+        remove_background(path_to_warped_image, path_to_warped_image_clean)
+        resize(
+            path_to_warped_image,
+            path_to_warped_image_clean,
+            path_to_warped_image_mini,
+            path_to_warped_image_clean_mini,
+            resize_value,
+        )
+
+        # Step 2: Principal line detection
+        net = UNet(n_channels=3, n_classes=1)
+        net.load_state_dict(torch.load(path_to_model, map_location=torch.device("cpu")))
+        detect(net, path_to_warped_image_clean, path_to_palmline_image, resize_value)
+
+        # Step 3: Line classification
+        lines = classify(path_to_palmline_image)
+
+        # Step 4: Length measurement
+        im, contents = measure(path_to_warped_image_mini, lines)
+
+        # Step 5: Save result
+        save_result(im, contents, resize_value, path_to_result)
+
+        return JSONResponse(status_code=200, content={"message": "Palmistry analysis completed.", "result": contents})
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 if __name__ == "__main__":
