@@ -16,13 +16,23 @@ def get_lat_long(location_name_pin):
         return 28.7041, 77.1025
 
 
-
-
-
 API_KEY = "bda76f21-aad1-590f-923d-3d40f2678a1c"
 VEDIC_BASE_API = f"https://api.vedicastroapi.com/v3-json"
 
 
+def compare_date(start_date, end_date):
+    try:
+        start_date_obj = datetime.strptime(start_date, "%a %b %d %Y")
+        end_date_obj = datetime.strptime(end_date, "%a %b %d %Y")
+        
+        current_date = datetime.now()
+        
+        if start_date_obj < current_date and end_date_obj > current_date:
+            return True
+        else:
+            False
+    except:
+        False
 
 # Function to calculate filtered antardasha list
 def calculate_antardasha(antardashas, antardasha_order):
@@ -40,8 +50,10 @@ def calculate_antardasha(antardashas, antardasha_order):
             end_date = current_order[j + 1] if j + 1 < len(current_order) else None
 
             # Append to the result list
-            filter_antardasha.append(f"{current_antardasha[j]} {start_date} to {end_date}")
-            previous_date = end_date
+            print(f"{current_antardasha[j]} {start_date} to {end_date}")
+            if compare_date(start_date, end_date):
+                filter_antardasha.append(f"{current_antardasha[j]} {start_date} to {end_date}")
+                previous_date = end_date
 
     return filter_antardasha
 
@@ -55,7 +67,7 @@ def get_antardasha(year, month, day, hour, minute, birth_place_pin):
     try:
         response = requests.get(f"{VEDIC_BASE_API}/{api_entity}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz={tz}&api_key={API_KEY}&lang={lang}")
 
-        print(response)
+        # print(response)
         if response.status_code == 200:
             response_json = response.json()
 

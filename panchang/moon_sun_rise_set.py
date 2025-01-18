@@ -3,6 +3,9 @@ from datetime import datetime
 
 
 
+API_KEY = "a9a96b0a-fbfb-593b-b0dc-2ca6306964a0"
+VEDIC_BASE_API = f"https://api.vedicastroapi.com/v3-json"
+
 def get_current_date_time():
     date = datetime.now().date()
     time = datetime.now().time()
@@ -27,8 +30,6 @@ def get_current_location():
 
 
 
-API_KEY = "bda76f21-aad1-590f-923d-3d40f2678a1c"
-VEDIC_BASE_API = f"https://api.vedicastroapi.com/v3-json"
 
 # def get_moon_rise_set():
 #     current_date, current_time = get_current_date_time()

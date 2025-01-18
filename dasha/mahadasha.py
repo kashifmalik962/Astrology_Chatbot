@@ -31,6 +31,12 @@ import requests
 from geopy.geocoders import Nominatim
 from datetime import datetime
 
+
+API_KEY = "bda76f21-aad1-590f-923d-3d40f2678a1c"
+VEDIC_BASE_API = f"https://api.vedicastroapi.com/v3-json"
+
+
+
 def get_lat_long(location_name_pin):
     geolocator = Nominatim(user_agent="pincode_locator",timeout=10)
     location = geolocator.geocode(location_name_pin)
@@ -67,10 +73,6 @@ def calculate_mahadasha_differences(response):
         differences[mahadasha[i].lower()] = f"{year_difference} years"
 
     return differences
-
-
-API_KEY = "bda76f21-aad1-590f-923d-3d40f2678a1c"
-VEDIC_BASE_API = f"https://api.vedicastroapi.com/v3-json"
 
 
 
