@@ -68,14 +68,12 @@ def detect_hinglish(text):
     else:
         return detect(text)
 
-a = """"
-मंगल के 8वें भाव में होने और 11वें, 2वें और 3वें भाव को देखने के कारण आप पर मांगलिक दोष है। आपका काल-सर्प दोष से भी थोड़ा संबंध है, लेकिन इसे महत्वपूर्ण नहीं माना जाता है। इसके अतिरिक्त, आप 28% मांगलिक हैं, जो कि दोष का हल्का रूप है
-"""
+
 
 def hindi_to_roman(hindi_text):
     # print("hindi_to_roman func running...")
     impove_roman_word_dict = {"apa":"aap", "himdi": "hindi", "himglisha": "hinglish","maim":"main", "mem":"me","haim;":"hai," ,"hai|":"hai","haim|":"hain", "haim,":"hain","anuvada":"anuvaad", "vishesha":"vishesh","rupa":'roop', "mashina":"machine", "larnimga":"learning", "upayoga":"upyog", "apak":"aapka","apako":"aapko", "maॉdala":"model", "aura":"aur","para":"par", "thika":"thik","vrrishabha":"vrrishabh","sthitiyam":"sthitiya","vyavahara":"vyavahar","pahaluom":"pahalo",
-               "tramsaphaॉrmara":"transformer","adharita":"aadharit", "labha":"labh", "anukulita":"anukulit", "hai|":"hai", "eka":"ek", "majabuta":"majbut", "upakarana":"upkaaran","dizaina":"design","yaha.n":"yahan", "isaka":"iska","chamdr":"chandra", "mahin":"mahina", "darshat":"darshata","mithuna":"mitthun", "chamdra":"chandra", "chamdrama":"chandrama", "sujhava":"sujhav","apane":"apne","graha":"grah","udaya":"uday","prabhavita":"prabhavit","jisase":"jisse", "taya":"tay","asa":"aas","pasa":"pas","satha":"sath","batachita":"baatcheet","karate":"karte","jij~nasu":"jigyasu","samvadashila":"samvadsheel","mesha":"meesh","bhavuka":"bhavuk","khuda":"khud","atmavishvasa":"atmavishvas","pramanika":"pramanika","prastuta":"prastut","asa-pasa":"aas-paas","dekha":"dekh","hu.n":"hun","vartamana":"vartmaan","vem":"ve","ghara":"ghar","charana":"charan","imgita":"imgit","karata":"karta","asurakshaom":"asurakshao","samane":"samne","lekina":"lekin","vikasa":"vikas","mela":"mel","samkhya":"sankhya","ju.de":"jude","samyojana":"samyojan","jivana":"jivan","kshetrom":"kshetro","shuruata":"shuruat","dhyana":"dhyaan","kemdrita":"kendritra","karane":"karne", "bahuta":"bahut","sumdara":"sundar","kainavasa":"kainvas","hu.n,":"hun,","aja":"aaj","akasha":"aaksh","chamaka":"chamak","akara":"aakar","nahim":"nahi","haim":"hai","sambamdha":"sambandh","chijem":"chije","vyavaharika":"vyavharik","ju.dava.n":"judava","jyotisha":"jyotish","atma":"aatm","khoja":"khoj","pratyeka":"pratyek","janma":"janm","anukula":"anukul","upayukta":"upyukt","kumdali":"kundali","madada":"madad","pasamda":"pasand","karumga":"karunga","salaha":"salah","pradana":"pradan","karumga|":"karunga","karum":"karu","samajha":"samajh","hamem":"hame","margadarshana":"margdarshan","nirbhara":"nirbhar", "svabhava":"svabhav","samketa":"sanket","apaka":"aapka","jala":"jal","vahaka":"vahak","svatamtrata":"swatantra","sparsha":"sparsh","manaviya":"manviya","mulamka":"mulank","shukra":"shukr","poshana":"poshan","bhara":"bhar","dekhabhala":"dekhbhal","bana":"ban","apamem":"aapme","aksara":"aksar","parivara":"parivar","shamti":"shanti","sthapita":"sthapit","sahayoga":"sahyog","jisamem":"jisme","dhyana":"dhyan","shamta":"shant","dina":"din","manasika":"mansik","amtarika":"aantarik","samtulana":"santulan","sadbhava":"sadbhav","karem":"kare","adhika":"adhik","prapta":"prapt","avasara":"avasar","bhava":"bhav","karana":"karan","mamgalika":"mangalik", "dosha":"dosh","mahatvapurna":"mahatvapurn","isake":"iske","atirikta":"atirikt", "mamgala":"mangal"}
+               "tramsaphaॉrmara":"transformer","adharita":"aadharit", "labha":"labh", "anukulita":"anukulit", "hai|":"hai", "eka":"ek", "majabuta":"majbut", "upakarana":"upkaaran","dizaina":"design","yaha.n":"yahan", "isaka":"iska","chamdr":"chandra", "mahin":"mahina", "darshat":"darshata","mithuna":"mitthun", "chamdra":"chandra", "chamdrama":"chandrama", "sujhava":"sujhav","apane":"apne","graha":"grah","udaya":"uday","prabhavita":"prabhavit","jisase":"jisse", "taya":"tay","asa":"aas","pasa":"pas","satha":"sath","batachita":"baatcheet","karate":"karte","jij~nasu":"jigyasu","samvadashila":"samvadsheel","mesha":"meesh","bhavuka":"bhavuk","khuda":"khud","atmavishvasa":"atmavishvas","pramanika":"pramanika","prastuta":"prastut","asa-pasa":"aas-paas","dekha":"dekh","hu.n":"hun","vartamana":"vartmaan","vem":"ve","ghara":"ghar","charana":"charan","imgita":"imgit","karata":"karta","asurakshaom":"asurakshao","samane":"samne","lekina":"lekin","vikasa":"vikas","mela":"mel","samkhya":"sankhya","ju.de":"jude","samyojana":"samyojan","jivana":"jivan","kshetrom":"kshetro","shuruata":"shuruat","dhyana":"dhyaan","kemdrita":"kendritra","karane":"karne", "bahuta":"bahut","sumdara":"sundar","kainavasa":"kainvas","hu.n,":"hun,","aja":"aaj","akasha":"aaksh","chamaka":"chamak","akara":"aakar","nahim":"nahi","haim":"hai","sambamdha":"sambandh","chijem":"chije","vyavaharika":"vyavharik","ju.dava.n":"judava","jyotisha":"jyotish","atma":"aatm","khoja":"khoj","pratyeka":"pratyek","janma":"janm","anukula":"anukul","upayukta":"upyukt","kumdali":"kundali","madada":"madad","pasamda":"pasand","karumga":"karunga","salaha":"salah","pradana":"pradan","karumga|":"karunga","karum":"karu","samajha":"samajh","hamem":"hame","margadarshana":"margdarshan","nirbhara":"nirbhar", "svabhava":"svabhav","samketa":"sanket","apaka":"aapka","jala":"jal","vahaka":"vahak","svatamtrata":"swatantra","sparsha":"sparsh","manaviya":"manviya","mulamka":"mulank","shukra":"shukr","poshana":"poshan","bhara":"bhar","dekhabhala":"dekhbhal","bana":"ban","apamem":"aapme","aksara":"aksar","parivara":"parivar","shamti":"shanti","sthapita":"sthapit","sahayoga":"sahyog","jisamem":"jisme","dhyana":"dhyan","shamta":"shant","dina":"din","manasika":"mansik","amtarika":"aantarik","samtulana":"santulan","sadbhava":"sadbhav","karem":"kare","adhika":"adhik","prapta":"prapt","avasara":"avasar","bhava":"bhav","karana":"karan","mamgalika":"mangalik", "dosha":"dosh","mahatvapurna":"mahatvapurn","isake":"iske","atirikta":"atirikt", "mamgala":"mangal", "adhara":"aadhar", "para":"par", "haim:":"hain", "brrihaspati ":"brhaspati", "uttara":"uttar","bedaruma":"bedroom","dakshina":"dakshin","sabase": "sabse","dvara":"dvar","bachem":"bache","pashchima":"pashchim"}
 
     # Transliterate from Devanagari (Hindi) to Roman
     fresh_words = []
@@ -999,6 +997,31 @@ def get_planet_from_text(question):
 
     return "sun"
 
+# Get gems from question/text
+def get_gem_from_text(question):
+    lst = ["cat_eye", "cat eye", "diamond", "ruby", "pearl", "coral", "gomedhaka", "yellow_sapphire", "blue_sapphire", "emerald"]
+    for word in question.split():
+        if word.lower() in lst:
+            if word.lower() == "cat eye":
+                return "cat_eye"
+            return word.lower()
+
+    return "coral"
+
+
+# Get vastu no from question/text
+def get_nakshatra_vastu_no(question):
+    for word in question.split():
+        # print(word, type(word))
+        try:
+            if int(word) in range(1,28):
+                # print("inner no")
+                return word
+        except:
+            pass
+
+    return 1
+
 
 # Get planets Report
 def get_planets_report(year, month, day, hour, minute, birth_place_pin, planet):
@@ -1042,41 +1065,41 @@ def get_planets_report(year, month, day, hour, minute, birth_place_pin, planet):
 
 
 # Get Personal-Characteristics
-def get_per_charcterstics(year, month, day, hour, minute, birth_place_pin):
-    lat,lon = get_lat_long(birth_place_pin)
-    api_entity = "horoscope/personal-characteristics"
-    tz = 5.5
-    lang = "en"
+# def get_per_charcterstics(year, month, day, hour, minute, birth_place_pin):
+#     lat,lon = get_lat_long(birth_place_pin)
+#     api_entity = "horoscope/personal-characteristics"
+#     tz = 5.5
+#     lang = "en"
 
-    try:
-        response = requests.get(f"{VEDIC_BASE_API}/{api_entity}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz={tz}&api_key={API_KEY}&lang={lang}")
+#     try:
+#         response = requests.get(f"{VEDIC_BASE_API}/{api_entity}?dob={day}/{month}/{year}&tob={hour}:{minute}&lat={lat}&lon={lon}&tz={tz}&api_key={API_KEY}&lang={lang}")
 
-        print(response)
-        if response.status_code == 200:
-            response_json = response.json()
+#         print(response)
+#         if response.status_code == 200:
+#             response_json = response.json()
 
-            # print(response_json)
-            response_res = response_json.get("response", [])
-            # print(response_res, "++++++")
-            filer_result = ["personal Charaterstics =>"]
-            for rec in response_res:
-                filter_dict = {}
-                filter_dict["current_house"] =  rec["current_house"]
-                filter_dict["verbal_location"] =  rec["verbal_location"]
-                filter_dict["current_zodiac"] =  rec["current_zodiac"]
-                filter_dict["lord_of_zodiac"] =  rec["lord_of_zodiac"]
-                filter_dict["lord_zodiac_location"] =  rec["lord_zodiac_location"]
-                filter_dict["lord_house_location"] =  rec["lord_house_location"]
-                filter_dict["lord_strength"] =  rec["lord_strength"]
-                filer_result.append(filter_dict)
-            return filer_result
-        else:
-            print(f"Failed to fetch horoscope data. Status code: {response.status_code}")
-            return {}
+#             # print(response_json)
+#             response_res = response_json.get("response", [])
+#             # print(response_res, "++++++")
+#             filer_result = ["personal Charaterstics =>"]
+#             for rec in response_res:
+#                 filter_dict = {}
+#                 filter_dict["current_house"] =  rec["current_house"]
+#                 filter_dict["verbal_location"] =  rec["verbal_location"]
+#                 filter_dict["current_zodiac"] =  rec["current_zodiac"]
+#                 filter_dict["lord_of_zodiac"] =  rec["lord_of_zodiac"]
+#                 filter_dict["lord_zodiac_location"] =  rec["lord_zodiac_location"]
+#                 filter_dict["lord_house_location"] =  rec["lord_house_location"]
+#                 filter_dict["lord_strength"] =  rec["lord_strength"]
+#                 filer_result.append(filter_dict)
+#             return filer_result
+#         else:
+#             print(f"Failed to fetch horoscope data. Status code: {response.status_code}")
+#             return {}
         
-    except requests.exceptions.RequestException as e:
-        print(f"Error while making API call: {e}")
-        return {}
+#     except requests.exceptions.RequestException as e:
+#         print(f"Error while making API call: {e}")
+#         return {}
 
 
 
@@ -1165,6 +1188,262 @@ def get_hora_muhurta():
         print(f"Error while making API call: {e}")
         return {}
 
+
+# Get Moon Phase
+def get_moon_phase():
+    current_date, current_time = get_current_date_time()
+    tz = 5.5
+    lang = "en"
+    api_rise_entity = "panchang/moon-phase"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?api_key={API_KEY}&date={current_date}&tz={tz}&lang={lang}")
+
+        # print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            # print(response_res, "response_res")
+            
+            bot_response = response_res["bot_response"]
+            luminance = response_res["luminance"]
+            phase = response_res["phase"]
+            paksha = response_res["paksha"]
+            state = response_res["state"]
+            date = response_res["date"]
+            
+            return {"Moon Phase =>": phase, "response": bot_response, "luminance":luminance, "paksha":paksha, "state":state, "date":date}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+
+# Get Solar/Sun noon
+def get_solar_noon():
+    current_date, current_time = get_current_date_time()
+    coordinates = get_current_location()
+    tz = 5.5
+    lang = "en"
+    api_rise_entity = "panchang/solarnoon"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?api_key={API_KEY}&date={current_date}&tz={tz}&lat={coordinates[0]}&lon={coordinates[1]}&time={current_time}&lang={lang}")
+
+        # print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            # print(response_res, "response_res")    
+            sun_noon = response_res["sun_noon"]
+            bot_response = response_res["bot_response"]
+            
+            return {"Sun noon =>": sun_noon, "bot_response":bot_response}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+# Get Retrogrades each-planet
+def get_retrogrades(planet="Sun"):
+    planet = planet
+    lang = "en"
+    api_rise_entity = "panchang/retrogrades"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?api_key={API_KEY}&year={datetime.now().date().year}&planet={planet}&lang={lang}")
+
+        print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            print(response_res, "response_res")
+            
+            bot_response = response_res["bot_response"]
+            dates = response_res["dates"]
+            
+            return {"retrogrades for {planet} =>":bot_response,  "dates": dates}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+# Get BioRhythm
+def get_bio_rthythm(year, month, day):
+    lang = "en"
+    api_rise_entity = "prediction/biorhythm"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?dob={day}/{month}/{year}&api_key={API_KEY}&lang={lang}")
+
+        print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            print(response_res, "response_res")
+
+            
+            return {"BioRhythm =>": response_res}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+
+# Gem details
+def get_gem_details(gem):
+    gem = gem
+    lang = "en"
+    api_rise_entity = "utilities/gem-details"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?gem={gem}&lang={lang}&api_key={API_KEY}")
+
+        # print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            # print(response_res, "response_res")
+            
+            name = response_res["response"]["name"]
+            gem = response_res["response"]["gem"]
+            planet = response_res["response"]["planet"]
+            good_results = response_res["response"]["good_results"]
+            diseases_cure = response_res["response"]["diseases_cure"]
+            finger = response_res["response"]["finger"]
+            metal = response_res["response"]["metal"]
+            
+            return {"gem details =>":name,  "gem": gem, "planet":planet, "good_results":good_results, "diseases_cure":diseases_cure, "finger":finger, "metal":metal}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+# Get Nakshatra Vastu Details
+def get_nakshatra_vastu(nakshatra_no):
+    nakshatra_no = nakshatra_no
+    lang = "en"
+    api_rise_entity = "utilities/nakshatra-vastu-details"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?nakshatra={nakshatra_no}&lang={lang}&api_key={API_KEY}")
+
+        # print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            # print(response_res, "response_res")
+            
+            Nakshatra = response_res["Nakshatra"]
+            Lord = response_res["Lord"]
+            Favorable_Direction = response_res["Favorable_Direction"]
+            Avoidance = response_res["Avoidance"]
+            Weight = response_res["Weight"]
+            Entrance_to_Avoid = response_res["Entrance_to_Avoid"]
+            Sentence = response_res["Sentence"]
+            Room_Locations = response_res["Room_Locations"]
+            
+            return {"Nakshatra details =>":Nakshatra,  "Lord": Lord, "Favorable_Direction":Favorable_Direction, "Avoidance":Avoidance, "Weight":Weight, "Entrance_to_Avoid":Entrance_to_Avoid, "Sentence":Sentence, "Room_Locations":Room_Locations}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+
+# Get Day Number
+def get_day_no(year, month, day):
+    lang = "en"
+    api_rise_entity = "prediction/day-number"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?dob={day}/{month}/{year}&api_key={API_KEY}&lang={lang}")
+
+        # print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            # print(response_res, "response_res")
+            
+            return {"day number =>": response_res}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+    
+
+# Get Numerology details
+def get_numerology(year, month, day):
+    lang = "en"
+    name = "human"
+    api_rise_entity = "prediction/numerology"
+
+    try:
+        response = requests.get(f"{VEDIC_BASE_API}/{api_rise_entity}?name={name}&date={day}/{month}/{year}&api_key={API_KEY}&lang={lang}")
+
+        # print(response)
+        if response.status_code == 200:
+
+            response_json = response.json()
+            response_res = response_json.get("response", [])
+
+            # print(response_res, "response_res")
+            destiny = response_res["destiny"]["meaning"]
+            destiny_no = response_res["destiny"]["number"]
+            personality = response_res["personality"]["meaning"]
+            personality_no = response_res["personality"]["number"]
+            attitude = response_res["attitude"]["meaning"]
+            attitude_no = response_res["attitude"]["number"]
+            character = response_res["character"]["meaning"]
+            character_no = response_res["character"]["number"]
+            soul = response_res["soul"]["meaning"]
+            soul_no = response_res["soul"]["number"]
+            agenda = response_res["agenda"]["meaning"]
+            agenda_no = response_res["agenda"]["number"]
+            purpose = response_res["purpose"]["meaning"]
+            purpose_no = response_res["purpose"]["number"]
+            
+            return {"Numerology => , destiny":destiny, "destiny_no":destiny_no ,"personality":personality,"personality_no":personality_no, "attitude":attitude, "attitude_no":attitude_no, "character":character, "character_no":character_no,"soul":soul, "soul_no":soul_no ,"agenda":agenda, "agenda_no":agenda_no,"purpose":purpose, "purpose_no":purpose_no}
+        else:
+            print(f"Failed to fetch horoscope data. Status code: {response_res.status_code}")
+            return {}
+    except requests.exceptions.RequestException as e:
+        print(f"Error while making API call: {e}")
+        return {}
+
+    
 
 # Create object of tf-idf class
 cv = TfidfVectorizer()
@@ -1266,12 +1545,13 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
         print(text, "text")
     elif detect_lang_user == "Hinglish":
         # translated_text = Translator.translate_text(question, from_language='auto', to_language='hi', translator='google')
-        # translated_text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
         print(question, "question language text...")
-        translated_text = GoogleTranslator(source='auto', target='en').translate(question)
-        print(translated_text, "convert question Hinglish ++")
+        # text = GoogleTranslator(source='auto', target='en').translate(question)
+        text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
+        print(text, "convert question hinglish to english ++")
+        translated_text = cnvrtLowerCase(removeHtmlTag(removeUrls(removePunctuation(removeQuatation(question)))))
         userLanguage = "Hinglish"
-        text = cnvrtLowerCase(removeHtmlTag(removeUrls(removePunctuation(removeQuatation(translated_text)))))
+        text = cnvrtLowerCase(removeHtmlTag(removeUrls(removePunctuation(removeQuatation(text)))))
     else:
         userLanguage = "en"
         translated_text = question
@@ -1285,7 +1565,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
     print(similarities, "similarities")
     
     try:
-        if similarities[1] > .80:
+        if similarities[1] > .75:
             print(df["Answer"][similarities[0]])
             if userLanguage == "hi":
                 # translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
@@ -1305,7 +1585,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 """Generate the appropriate question based on age."""
                 print(entity, "entity in generate_question")
                 
-                vedic_astrological_signs = radical_no = horoscope_data = lagna_lord = birth_chart = nakshatra = tithi_yoga = kundli_signs = moon_rising_set = sun_rising_set = mangal_dosh = kaalsarp_dosh = manglik_dosh = pitra_dosh = mahadasha = antardasha = chardasha = chardasha_main = yogini = sade_sati = friend_planets = numero_table = varshapal_details = ascendant_report = planet_report = per_charcterstics = chog_muhurta = hora_muhurta = ""
+                vedic_astrological_signs = radical_no = horoscope_data = lagna_lord = birth_chart = nakshatra = tithi_yoga = kundli_signs = moon_rising_set = sun_rising_set = mangal_dosh = kaalsarp_dosh = manglik_dosh = pitra_dosh = mahadasha = antardasha = chardasha = chardasha_main = yogini = sade_sati = friend_planets = numero_table = varshapal_details = ascendant_report = planet_report = chog_muhurta = hora_muhurta = moon_phase = solar_noon = retrogrades = biorhythm = day_no = numerology = gem_details = nakshatra_vastu = ""
                 
                 
                 if "zodiac_sign" in entity:
@@ -1353,18 +1633,37 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 if "planet_report" in entity:
                     planet = get_planet_from_text(translated_text)
                     planet_report = get_planets_report(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin, planet)
-                if "personal_characteristics" in entity:
-                    per_charcterstics = get_per_charcterstics(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
+                # if "personal_characteristics" in entity:
+                #     per_charcterstics = get_per_charcterstics(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)
                 if "chog_muhurta" in entity:
                     chog_muhurta = get_chog_muhurta()
                 if "hora_muhurta" in entity:
                     hora_muhurta = get_hora_muhurta()
+                if "moon_phase" in entity:
+                    moon_phase = get_moon_phase()
+                if "solar_noon" in entity:
+                    solar_noon = get_solar_noon()
+                if "retrogrades" in entity:
+                    planet = get_planet_from_text(translated_text)
+                    retrogrades = get_retrogrades(planet)
+                if "biorhythm" in entity:
+                    biorhythm = get_bio_rthythm(item.year,item.month,item.day)
+                if "day_no" in entity:
+                    day_no = get_day_no(item.year,item.month,item.day)
+                if "numerology" in entity:
+                    numerology = get_numerology(item.year,item.month,item.day)
+                if "gem_details" in entity:
+                    gem = get_gem_from_text(translated_text)
+                    gem_details = get_gem_details(gem)
+                if "nakshatra_vastu" in entity:
+                    nakshatra_vastu_no = get_nakshatra_vastu_no(translated_text)
+                    nakshatra_vastu = get_nakshatra_vastu(nakshatra_vastu_no)
 
 
-                if vedic_astrological_signs or radical_no or horoscope_data or tithi_yoga or kundli_signs or moon_rising_set or sun_rising_set or mangal_dosh or kaalsarp_dosh or manglik_dosh or pitra_dosh or mahadasha or antardasha or chardasha or chardasha_main or yogini or sade_sati or friend_planets or numero_table or varshapal_details or ascendant_report or planet_report or per_charcterstics or chog_muhurta or hora_muhurta:
+                if vedic_astrological_signs or radical_no or horoscope_data or tithi_yoga or kundli_signs or moon_rising_set or sun_rising_set or mangal_dosh or kaalsarp_dosh or manglik_dosh or pitra_dosh or mahadasha or antardasha or chardasha or chardasha_main or yogini or sade_sati or friend_planets or numero_table or varshapal_details or ascendant_report or planet_report or chog_muhurta or hora_muhurta or moon_phase or solar_noon or retrogrades or biorhythm or day_no or numerology or gem_details or nakshatra_vastu:
                     base_question = (
                         f"Only act as an astrologer and do not reply to questions other than astrology. "
-                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data, tithi_yoga, kundli_signs,moon_rising_set, sun_rising_set, mangal_dosh, kaalsarp_dosh, manglik_dosh, pitra_dosh, mahadasha, antardasha, chardasha, chardasha_main, yogini, sade_sati, friend_planets,numero_table,varshapal_details,ascendant_report, planet_report,per_charcterstics,chog_muhurta, hora_muhurta} ."
+                        f"this is my details {vedic_astrological_signs,radical_no,horoscope_data, tithi_yoga, kundli_signs,moon_rising_set, sun_rising_set, mangal_dosh, kaalsarp_dosh, manglik_dosh, pitra_dosh, mahadasha, antardasha, chardasha, chardasha_main, yogini, sade_sati, friend_planets,numero_table,varshapal_details,ascendant_report, planet_report,chog_muhurta, hora_muhurta, moon_phase, solar_noon, retrogrades, biorhythm, day_no, numerology, gem_details, nakshatra_vastu} ."
                         f"Let's say the question is '{translated_text}'. "
                     )
                 else:
@@ -1375,14 +1674,14 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     )
 
                 if age < 15:
-                    print(base_question + "Considering my age is under 15, please give an answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is under 15, please give an answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is under 15, please give an answer in 70 to 90 words only.")
+                    return base_question + "Considering my age is under 15, please give an answer in 70 to 90 words only."
                 elif age > 50:
-                    print(base_question + "Considering my age is greater than 50, please give an answer in 50 to 60 words only.")
-                    return base_question + "Considering my age is greater than 50, please give an answer in 50 to 60 words only."
+                    print(base_question + "Considering my age is greater than 50, please give an answer in 70 to 90 words only.")
+                    return base_question + "Considering my age is greater than 50, please give an answer in 70 to 90 words only."
                 else:
-                    print(base_question + "please give an answer in 50 to 60 words only.")
-                    return base_question + "please give an answer in 50 to 60 words only."
+                    print(base_question + "please give an answer in 70 to 90 words only.")
+                    return base_question + "please give an answer in 70 to 90 words only."
                 
             
             data = await request.json()
@@ -1426,18 +1725,18 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     "zodiac_sign": [
                         "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "lagna sign", "moon sign","sun sin", "moon sin", "astrological sign", "aries", "taurus", "gemini",
                         "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn",
-                        "aquarius", "pisces", "lunar sign", "chandra rashi", "rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign", "joint sign"
+                        "aquarius", "pisces", "chandra rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign", "joint sign"
                     ],
                     "house_planets": [
-                        "house_planets", "house", "houses","bhava", "planet", "planets","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus","saturn", "degree", "degre", "digri", "ketu"
+                        "house_planets", "house", "houses","bhava", "planet", "planets", "planetary","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus","saturn", "degree", "degre", "digri", "ketu", "leadership", "peace", "energy", "strength", "communication", "intellect", "business", "wisdom", "wealth", "children", "relationship", "beauty", "love", "creativity","hard work", "struggles", "struggle", "illusions", "desires", "spirituality", "past", "marriage", "relation-ship", "relation", "romance", "mind", "luxury", "finance"," achievement", "growth", "knowledge"
                     ],
-                    "kundli_signs":["kundli_signs", "gana", "yoni", "vasya", "nadi","varna","paya","tatva","life stone", "lucky stone", "horoscope", "kundli signs","kundli sign", "birth chart", "signs", "natal chart", "kundli", "birth_chart", "horoscope chart"],
+                    "kundli_signs":["kundli_signs", "gana", "yoni", "vasya", "nadi","varna","paya","tatva","life stone", "lucky stone", "horoscope", "kundli signs","kundli sign", "birth chart", "signs", "natal chart", "kundli", "birth_chart", "horoscope chart", "rashi", "rasi"],
 
                     "radical":["radical", "radicals", "life path number", "path number", "path no" ,"destiny number", "destiny no"],
                     
                     "tithi_yoga": [
                         "tithi_yoga", "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga","yoga","yog",
-                        "vipareeta yoga", "laxmi yoga", "chandra mangala yoga", "karana", "yog","tithi", "tithi number", "tithi no","lunar_month", "lunar", "lunaar","vara", "varaa","rahukaal", "rahukal", "rahu","nakshatra", "naksatra", "naksatraa", "nakstra", "naksatar","karan","gulika","sun position", "moon position","rasi", "rashi","rasee","rashee", "day", "panchang", "panchaang"
+                        "vipareeta yoga", "laxmi yoga", "chandra mangala yoga", "karana", "yog","tithi", "tithi number", "tithi no","lunar_month", "lunar", "lunaar","vara", "varaa","rahukaal", "rahukal", "rahu","nakshatra", "naksatra", "naksatraa", "nakstra", "naksatar","karan","gulika","sun position", "moon position", "rasee","rashee", "panchang", "panchaang"
                     ],
                     
                     "moon_rising_set":["moon_rising_set", "moon rise", "moon set", "moon rice", "mon rice", "moon sets", "moon rising", "moon risings","mon rising", "moon ricing","mon rise"],
@@ -1452,7 +1751,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
 
                     "pitra_dosh": ["pitra_dosh", "pitra dosh", "pitra dosha", "pitra dos", "pitra", "pitar", "pitar dos", "pitar dosh"],
                     
-                    "mahadasha": ["mahadasha", "mahadasa", "mahdasa", "mahdasha", "mahaadasha", "maha dasha", "maha dasa"],
+                    "mahadasha": ["mahadasha", "mahadasa", "mahdasa", "mahdasha", "mahaadasha", "maha dasha", "maha dasa", "events"],
                     
                     "antardasha":["antardasha", "antardasa","anterdasha", "anterdasa"],
                     
@@ -1474,12 +1773,30 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     
                     "planet_report":["planet_report", "sun report", "moon report", "mercury report", "venus report", "mars report", "saturn report", "jupiter report", "jupyter report", "rahu report", "ketu report"],
                     
-                    "personal_characteristics":["personal_characteristics", "personal characteristics", "characteristics"],
+                    # "personal_characteristics":["personal_characteristics", "personal characteristics", "characteristics"],
                     
-                    "chog_muhurta":["chog_muhurta", "choghadiya_muhurta", "choghadiya muhurta", "choghadiya", "muhurta", "mahurta", "chog muhurta", "chog mahurta", "muhurat"],
+                    "chog_muhurta":["chog_muhurta", "choghadiya_muhurta", "choghadiya muhurta", "choghadiya-muhurta", "choghadiya", "chog muhurta", "chog mahurta", "muhurat"],
                     
-                    "hora_muhurta":["hora_muhurta", "hora muhurta", "hora mahurta", "hora mahurat", "hora mohurat", "hora muhurat", "hora muhurata", "hora-mohrat", "hora-muhurta"],
+                    "hora_muhurta":["hora_muhurta", "hora muhurta", "hora-muhurta", "hora mahurta", "hora mahurat", "mahurat", "mohrat","muhurta", "muhurta", "mahurta", "hora mohurat", "hora muhurat", "hora muhurata", "hora-mohrat", "hora-muhurta"],
+                    
+                    "moon_phase":["moon_phase", "moon phase", "moon-phase","moon phese", "phase", "moon luminance", "luminance", "paksha"],
+                    
+                    "solar_noon":["solar_noon", "solar noon", "sun noon", "sun-noon" ,"sun non"],
+                    
+                    "retrogrades":["retrogrades", "retrograde", "retro grades", "retro grade" , "retro-grades", "retro-grade"],
+                    
+                    "biorhythm":["biorhythm", "bio rhythm", "bio-rhythm", "biorithm" , "biorythm", "retro-grade", "physical", "emotional", "emotion", "emotions","intellectual"],
+                    
+                    "day_no": ["day_no", "day no", "days no", "day-no" , "days-no", "day number", "day numbers"],
+                    
+                    "numerology": ["numerology", "numero logy", "numrology", "numero-logy"],
+                    
+                    "gem_details":["gem_details", "gem details", "gems details", "gems detail" , "gems-detail", "gems-details","gem-detail", "gem-details", "gems", "gem", "diseases", "health", "finger", "metal"],
+                    
+                    "nakshatra_vastu":["nakshatra_vastu", "nakshatra vastu", "naksatra vastu", "vastu"],
+                    
                 }
+                
                 def extractEntity(query):
                     entities = []
                     for entity, variations in keywords.items():
@@ -1527,29 +1844,29 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
-                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
-                    print(translated_text, "translated_text before apply hindi_to_roman")
-                    roman_text = hindi_to_roman(translated_text)
-                    print(roman_text)
-                    print(userLanguage, "userLanguage", roman_text, "roman_text")
-                    return {"answer": roman_text}
+                    # translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    # print(translated_text, "translated_text before apply hindi_to_roman")
+                    # roman_text = hindi_to_roman(translated_text)
+                    # print(roman_text)
+                    # print(userLanguage, "userLanguage", roman_text, "roman_text")
+                    return {"answer": response}
                 
                 elif "Based on your birth chart" in response or "Based on your birth details" in response or "Based on your Kundli" in response:
                     response = response[response.index(",")+2:]
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
-                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
-                    print(translated_text, "translated_text before apply hindi_to_roman")
-                    roman_text = hindi_to_roman(translated_text)
-                    print(userLanguage, "userLanguage", roman_text, "roman_text")
-                    return {"answer":roman_text}
+                    # translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    # print(translated_text, "translated_text before apply hindi_to_roman")
+                    # roman_text = hindi_to_roman(translated_text)
+                    # print(userLanguage, "userLanguage", roman_text, "roman_text")
+                    return {"answer":response}
 
                 else:
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
-                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
-                    print(translated_text, "translated_text before apply hindi_to_roman")
-                    roman_text = hindi_to_roman(translated_text)
-                    print(userLanguage, "userLanguage", roman_text, "roman_text")
-                    return {"answer":roman_text}
+                    # translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    # print(translated_text, "translated_text before apply hindi_to_roman")
+                    # roman_text = hindi_to_roman(translated_text)
+                    # print(userLanguage, "userLanguage", roman_text, "roman_text")
+                    return {"answer":response}
                 
             else:
                 # User by-default language is english
