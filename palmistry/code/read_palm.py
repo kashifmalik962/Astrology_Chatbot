@@ -8,7 +8,7 @@ from detection import *
 from measurement import *
 
 def main(input):
-    path_to_input_image = 'input/{}'.format(input)
+    path_to_input_image = 'input_manual/{}'.format(input)
 
     results_dir = './results'
     os.makedirs(results_dir, exist_ok=True)
@@ -33,11 +33,11 @@ def main(input):
     else:
         remove_background(path_to_warped_image, path_to_warped_image_clean)
         resize(path_to_warped_image, path_to_warped_image_clean, path_to_warped_image_mini, path_to_warped_image_clean_mini, resize_value)
-
+        
         # 2. Principal line detection
         net = UNet(n_channels=3, n_classes=1)
         net.load_state_dict(torch.load(path_to_model, map_location=torch.device('cpu')))
-        detect(net, path_to_warped_image_clean, path_to_palmline_image, resize_value)
+        detected(net, path_to_warped_image_clean, path_to_palmline_image, resize_value)
 
         # 3. Line classification
         print(path_to_palmline_image, "path_to_palmline_image")
@@ -55,4 +55,4 @@ if __name__ == '__main__':
     # parser.add_argument('--input', required=True, help='the path to the input')
     # args = parser.parse_args()
     # main(args.input)
-    main("hand7.jpg")
+    main("869eac9a-f682-4b22-928a-cc9ac635bbb3.jpg")

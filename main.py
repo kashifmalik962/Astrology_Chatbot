@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Response, WebSocket, WebSocketDisconnect, Request, UploadFile, File
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 from io import BytesIO
 import shutil
@@ -12,7 +12,6 @@ from nltk.stem import PorterStemmer
 porter = PorterStemmer()
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from vedicastro import VedicAstro
 from langdetect import detect
 import translators as Translator
 from langchain_ollama import OllamaLLM
@@ -24,8 +23,6 @@ from geopy.geocoders import Nominatim
 from indic_transliteration import sanscript
 from fastapi.templating import Jinja2Templates
 import swisseph as swe
-from deep_translator import GoogleTranslator
-import ephem
 import requests
 import os
 from palmistry.code.tools import *
@@ -34,6 +31,8 @@ from palmistry.code.classifi import *
 from palmistry.code.rectification import *
 from palmistry.code.detection import *
 from palmistry.code.measurement import *
+# from vedicastro import VedicAstro
+# from deep_translator import GoogleTranslator
 
 
 API_KEY = "a9a96b0a-fbfb-593b-b0dc-2ca6306964a0"
@@ -109,6 +108,78 @@ def get_lat_long(location_name_pin):
         print("location nhi mili", latitude, longitude)
         return 28.7041, 77.1025
 
+
+# Remove special character from string
+def remove_special_characters(input_string):
+    # print("remove_special_characters func runn....")
+    # Regular expression to keep only alphanumeric characters and periods
+    result = re.sub(r'[^a-zA-Z0-9\s.]', '', input_string)
+    return result
+
+# Remove question from answer
+def remove_ques_from_ans(question, answer):
+    question = question.lower()
+    answer = answer.lower()
+    # print(question, "question", answer, "answer in remove_ques_from_ans")
+    if question in answer:
+        new_answer =  remove_special_characters(answer.replace(question, ""))
+        return new_answer
+    return remove_special_characters(answer)
+
+# Get planet from question/text
+def get_planet_from_text(question):
+    lst = ["sun", "moon", "mercury", "venus", "mars", "saturn", "jupiter", "jupyter", "rahu", "ketu"]
+    for word in question.split():
+        if word.lower() in lst:
+            if word.lower() == "jupyter":
+                return "jupiter"
+            return word.lower()
+
+    return "sun"
+
+# Get gems from question/text
+def get_gem_from_text(question):
+    lst = ["cat_eye", "cat eye", "diamond", "ruby", "pearl", "coral", "gomedhaka", "yellow_sapphire", "blue_sapphire", "emerald"]
+    for word in question.split():
+        if word.lower() in lst:
+            if word.lower() == "cat eye":
+                return "cat_eye"
+            return word.lower()
+
+    return "coral"
+
+
+# Get vastu no from question/text
+def get_nakshatra_vastu_no(question):
+    for word in question.split():
+        # print(word, type(word))
+        try:
+            if int(word) in range(1,28):
+                # print("inner no")
+                return word
+        except:
+            pass
+
+    return 1
+
+
+# User-Question related to Greeting
+def is_greeting(user_input):
+    # List of common greetings
+    greetings = [
+        "hi", "hii", "hello", "hey", "hyy", "heyy","namaste", "greetings", 
+        "good morning", "good afternoon", "good evening",
+         "what's up", "how are you", "how do you do", "shubh prabhat",  "as-salamu alaykum", "marhaba"
+    ]
+    
+    # Normalize user input (lowercase and strip extra spaces)
+    user_input = user_input.lower().strip()
+    
+    # Check if the input is in the greetings list or contains a greeting as a substring
+    for greeting in greetings:
+        if greeting in user_input:
+            return True
+    return False
 
 
 def get_radical_no(year, month, day):
@@ -985,44 +1056,6 @@ def get_ascendant_report(year, month, day, hour, minute, birth_place_pin):
         return {}
 
 
-
-# Get planet from question/text
-def get_planet_from_text(question):
-    lst = ["sun", "moon", "mercury", "venus", "mars", "saturn", "jupiter", "jupyter", "rahu", "ketu"]
-    for word in question.split():
-        if word.lower() in lst:
-            if word.lower() == "jupyter":
-                return "jupiter"
-            return word.lower()
-
-    return "sun"
-
-# Get gems from question/text
-def get_gem_from_text(question):
-    lst = ["cat_eye", "cat eye", "diamond", "ruby", "pearl", "coral", "gomedhaka", "yellow_sapphire", "blue_sapphire", "emerald"]
-    for word in question.split():
-        if word.lower() in lst:
-            if word.lower() == "cat eye":
-                return "cat_eye"
-            return word.lower()
-
-    return "coral"
-
-
-# Get vastu no from question/text
-def get_nakshatra_vastu_no(question):
-    for word in question.split():
-        # print(word, type(word))
-        try:
-            if int(word) in range(1,28):
-                # print("inner no")
-                return word
-        except:
-            pass
-
-    return 1
-
-
 # Get planets Report
 def get_planets_report(year, month, day, hour, minute, birth_place_pin, planet):
     lat,lon = get_lat_long(birth_place_pin)
@@ -1529,7 +1562,7 @@ async def reTrainModel():
 
 @app.post("/getAnswer")
 async def getAnswer(question:str, item:Item, response:Response, request: Request):
-    global questions, df, userLanguage,  year, month, day, hour , minute, second, birth_place_pin
+    global questions, df, userLanguage
     
     detect_lang_user = detect_hinglish(question)
 
@@ -1537,8 +1570,8 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
     print(detect_lang_user, "detect_lang_user ++")
     
     if detect_lang_user == "hi":
-        # translated_text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
-        translated_text = GoogleTranslator(source='auto', target='en').translate(question)
+        translated_text = Translator.translate_text(question, from_language='auto', to_language='en', translator='google')
+        # translated_text = GoogleTranslator(source='auto', target='en').translate(question)
         print(translated_text, "convert question ++")
         userLanguage = "hi"
         text = cnvrtLowerCase(removeHtmlTag(removeUrls(removePunctuation(removeQuatation(translated_text)))))
@@ -1568,12 +1601,12 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
         if similarities[1] > .75:
             print(df["Answer"][similarities[0]])
             if userLanguage == "hi":
-                # translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
-                translated_text = GoogleTranslator(source='auto', target='hi').translate(df["Answer"][similarities[0]])
+                translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
+                # translated_text = GoogleTranslator(source='auto', target='hi').translate(df["Answer"][similarities[0]])
                 return {"answer":translated_text}
             elif userLanguage == "Hinglish":
-                # translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
-                translated_text = GoogleTranslator(source='auto', target='hi').translate(df["Answer"][similarities[0]])
+                translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
+                # translated_text = GoogleTranslator(source='auto', target='hi').translate(df["Answer"][similarities[0]])
                 roman_text = hindi_to_roman(translated_text)
                 return {"answer":roman_text}
             else:
@@ -1661,27 +1694,56 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
 
 
                 if vedic_astrological_signs or radical_no or horoscope_data or tithi_yoga or kundli_signs or moon_rising_set or sun_rising_set or mangal_dosh or kaalsarp_dosh or manglik_dosh or pitra_dosh or mahadasha or antardasha or chardasha or chardasha_main or yogini or sade_sati or friend_planets or numero_table or varshapal_details or ascendant_report or planet_report or chog_muhurta or hora_muhurta or moon_phase or solar_noon or retrogrades or biorhythm or day_no or numerology or gem_details or nakshatra_vastu:
-                    base_question = (
-                        f"Only act as an astrologer and do not reply to questions other than astrology. "
+                    if userLanguage == "Hinglish":
+                        base_question = (
+                        f"Only act as an astrologer and do not reply to questions other than astrology. Give answer in hinglish language. "
                         f"this is my details {vedic_astrological_signs,radical_no,horoscope_data, tithi_yoga, kundli_signs,moon_rising_set, sun_rising_set, mangal_dosh, kaalsarp_dosh, manglik_dosh, pitra_dosh, mahadasha, antardasha, chardasha, chardasha_main, yogini, sade_sati, friend_planets,numero_table,varshapal_details,ascendant_report, planet_report,chog_muhurta, hora_muhurta, moon_phase, solar_noon, retrogrades, biorhythm, day_no, numerology, gem_details, nakshatra_vastu} ."
                         f"Let's say the question is '{translated_text}'. "
                     )
+                    else:
+                        base_question = (
+                            f"Only act as an astrologer and do not reply to questions other than astrology. "
+                            f"this is my details {vedic_astrological_signs,radical_no,horoscope_data, tithi_yoga, kundli_signs,moon_rising_set, sun_rising_set, mangal_dosh, kaalsarp_dosh, manglik_dosh, pitra_dosh, mahadasha, antardasha, chardasha, chardasha_main, yogini, sade_sati, friend_planets,numero_table,varshapal_details,ascendant_report, planet_report,chog_muhurta, hora_muhurta, moon_phase, solar_noon, retrogrades, biorhythm, day_no, numerology, gem_details, nakshatra_vastu} ."
+                            f"Let's say the question is '{translated_text}'. "
+                        )
                 else:
-                    base_question = (
-                        f"Act as a conversational human astrologer and return user question like human astrologer. "
-                        # f"My birth details  {item.day}/{item.month}/{item.year} {item.hour}:{item.minute} pincode={item.birth_place_pin} "
-                        f"user question is '{translated_text}'. "
-                    )
+                    if not is_greeting(translated_text):
+                        print("Inn is_greeting")
+                        if userLanguage == "Hinglish":
+                            base_question = (
+                            f"Only act as an astrologer and do not reply to questions other than astrology. Give answer in hinglish language. "
+                            f"this is my details  {get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)} "
+                            f"Let's say the question is '{translated_text}'. "
+                        )
+                        else:
+                            base_question = (
+                                f"Only act as an astrologer and do not reply to questions other than astrology. "
+                                f"this is my details  {get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)} "
+                                f"Let's say the question is '{translated_text}'. "
+                            )
+                    else:
+                        if userLanguage == "Hinglish":
+                            base_question = (
+                                    f"Only act as an astrologer and do not reply to questions other than astrology. Give answer in hinglish language. "
+                                    # f"this is my details  {get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)} "
+                                    f"Let's say the question is '{translated_text}'. "
+                                )
+                        else:
+                            base_question = (
+                                    f"Only act as an astrologer and do not reply to questions other than astrology. "
+                                    # f"this is my details  {get_horoscope_data(item.year,item.month,item.day,item.hour,item.minute,item.birth_place_pin)} "
+                                    f"Let's say the question is '{translated_text}'. "
+                                )
 
                 if age < 15:
-                    print(base_question + "Considering my age is under 15, please give an answer in 70 to 90 words only.")
-                    return base_question + "Considering my age is under 15, please give an answer in 70 to 90 words only."
+                    print(base_question + "Considering my age is under 15, please give an answer in 40 to 60 words only.")
+                    return base_question + "Considering my age is under 15, please give an answer in 40 to 60 words only."
                 elif age > 50:
-                    print(base_question + "Considering my age is greater than 50, please give an answer in 70 to 90 words only.")
-                    return base_question + "Considering my age is greater than 50, please give an answer in 70 to 90 words only."
+                    print(base_question + "Considering my age is greater than 50, please give an answer in 40 to 60 words only.")
+                    return base_question + "Considering my age is greater than 50, please give an answer in 40 to 60 words only."
                 else:
-                    print(base_question + "please give an answer in 70 to 90 words only.")
-                    return base_question + "please give an answer in 70 to 90 words only."
+                    print(base_question + "please give an answer in 40 to 60 words only.")
+                    return base_question + "please give an answer in 40 to 60 words only."
                 
             
             data = await request.json()
@@ -1728,7 +1790,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                         "aquarius", "pisces", "chandra rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign", "joint sign"
                     ],
                     "house_planets": [
-                        "house_planets", "house", "houses","bhava", "planet", "planets", "planetary","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus","saturn", "degree", "degre", "digri", "ketu", "leadership", "peace", "energy", "strength", "communication", "intellect", "business", "wisdom", "wealth", "children", "relationship", "beauty", "love", "creativity","hard work", "struggles", "struggle", "illusions", "desires", "spirituality", "past", "marriage", "relation-ship", "relation", "romance", "mind", "luxury", "finance"," achievement", "growth", "knowledge"
+                        "house_planets", "house", "houses","bhava", "planet", "planets", "planetary","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus","saturn", "degree", "degre", "digri", "ketu", "leadership", "peace", "energy", "strength", "communication", "intellect", "business", "wisdom", "wealth", "children", "relationship", "beauty", "love", "creativity","hard work", "struggles", "struggle", "illusions", "desires", "spirituality", "past", "marriage", "relation-ship", "relation", "romance", "mind", "luxury", "finance"," achievement", "growth", "knowledge", "swabhav", "savbhaav"
                     ],
                     "kundli_signs":["kundli_signs", "gana", "yoni", "vasya", "nadi","varna","paya","tatva","life stone", "lucky stone", "horoscope", "kundli signs","kundli sign", "birth chart", "signs", "natal chart", "kundli", "birth_chart", "horoscope chart", "rashi", "rasi"],
 
@@ -1810,8 +1872,8 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 print(entity, "extract entity")
 
  
-                question = generate_question(translated_text, entity, age)
-                response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question})
+                question_modified = generate_question(translated_text, entity, age)
+                response = chain.invoke({"context": memory.load_memory_variables({})["history"], "question": question_modified})
                 result = response["text"]
 
             except Exception as e:
@@ -1823,24 +1885,25 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
             if userLanguage == "hi":
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
-                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
-                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text.replace("\n", " ")}
                 
                 elif "Based on your birth chart" in response or "Based on your birth details" in response or "Based on your Kundli" in response:
-                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
-                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text[translated_text.index(",")+2:].replace("\n", " ")}
                 
                 else:
-                    # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
-                    translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
+                    translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
+                    # translated_text = GoogleTranslator(source='auto', target='hi').translate(response)
                     print(userLanguage, "userLanguage", translated_text, "translated_text")
                     return {"answer":translated_text.replace("\n", " ")}
                 
             elif userLanguage == "Hinglish":
+                print(response, "response in hinglish language +++")
                 if "positive interpretation" in response or "positive prediction" in response:
                     response = response[response.index("positive")+26:]
                     # translated_text = Translator.translate_text(response, from_language='auto', to_language='hi', translator='google')
@@ -1866,7 +1929,9 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     # print(translated_text, "translated_text before apply hindi_to_roman")
                     # roman_text = hindi_to_roman(translated_text)
                     # print(userLanguage, "userLanguage", roman_text, "roman_text")
-                    return {"answer":response}
+
+                    filter_response = remove_ques_from_ans(question,response)
+                    return {"answer": filter_response}
                 
             else:
                 # User by-default language is english
@@ -1881,7 +1946,12 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     print(userLanguage, "userLanguage", response, "response")
                     return {"answer":response.replace("\n", " ")}
     except:
-        return {"answer":"Not Found"}
+        if userLanguage == "hi":
+            return {"answer":"इस प्रश्न का सही और स्पष्ट उत्तर देने के लिए मुझे थोड़ा और समय या अधिक शोध की आवश्यकता होगी। मैं निश्चित रूप से सबसे अच्छा उत्तर प्रस्तुत करूंगा। आपकी समझ और विश्वास के लिए धन्यवाद"}
+        elif userLanguage == "Hinglish":
+            return {"answer":"Is prashn ka sahi aur spasht uttar dene ke liye mujhe thoda aur samay ya adhik research karni hogi. Main iska uttam uttar zarur prastut karunga. Dhanyavaad aapki samajh aur vishwas ke liye"}
+        else:
+            return {"answer":"To give a correct and clear answer to this question, I will need a little more time or more research. I will definitely present the best answer. Thank you for your understanding and trust"}
 
 
 
@@ -1889,7 +1959,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
 async def palmistry(file: UploadFile = File(...)):
     try:
         # Save uploaded file to a temporary directory
-        temp_dir = "./input"
+        temp_dir = "./palmistry/code/input"
         os.makedirs(temp_dir, exist_ok=True)
         input_file_path = os.path.join(temp_dir, file.filename)
 
@@ -1942,8 +2012,10 @@ async def palmistry(file: UploadFile = File(...)):
 
         # Step 5: Save result
         save_result(im, contents, resize_value, path_to_result)
-
-        return JSONResponse(status_code=200, content={"message": "Palmistry analysis completed.", "result": contents})
+        # os.remove(f"{temp_dir}/{file.filename}")
+        
+        # return JSONResponse(status_code=200, content={"message": "Palmistry analysis completed.", "result": contents})
+        return FileResponse(path="./palmistry/code/results/result.jpg", media_type="application/octet-stream", filename="result.jpg")
 
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

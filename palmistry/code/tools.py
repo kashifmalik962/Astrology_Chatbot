@@ -28,11 +28,30 @@ def remove_background(jpeg_dir, path_to_clean_image):
     img[mask == 255] = 255
     cv2.imwrite(path_to_clean_image, img)
 
-def resize(path_to_warped_image, path_to_warped_image_clean, path_to_warped_image_mini, path_to_warped_image_clean_mini, resize_value):
-    pil_img = Image.open(path_to_warped_image)
-    pil_img_clean = Image.open(path_to_warped_image_clean)
-    pil_img.resize((resize_value, resize_value), resample=Image.NEAREST).save(path_to_warped_image_mini)
-    pil_img_clean.resize((resize_value, resize_value), resample=Image.NEAREST).save(path_to_warped_image_clean_mini)
+from PIL import Image
+
+def resize(
+    path_to_warped_image, 
+    path_to_warped_image_clean, 
+    path_to_warped_image_mini, 
+    path_to_warped_image_clean_mini, 
+    resize_value
+):
+    """
+    Resize two images to the specified size and save them to the given paths.
+    """
+    try:
+        # Open images
+        pil_img = Image.open(path_to_warped_image)
+        pil_img_clean = Image.open(path_to_warped_image_clean)
+
+        # Resize and save images using high-quality resampling
+        pil_img.resize((resize_value, resize_value), resample=Image.NEAREST).save(path_to_warped_image_mini)
+        pil_img_clean.resize((resize_value, resize_value), resample=Image.NEAREST).save(path_to_warped_image_clean_mini)
+
+        print(f"Images resized and saved: {path_to_warped_image_mini}, {path_to_warped_image_clean_mini}")
+    except Exception as e:
+        print(f"Error in resizing images: {e}")
 
 def save_result(im, contents, resize_value, path_to_result):
     if im is None:
