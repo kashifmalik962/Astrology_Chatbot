@@ -1598,7 +1598,7 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
     print(similarities, "similarities")
     
     try:
-        if similarities[1] > .75:
+        if similarities[1] > .90:
             print(df["Answer"][similarities[0]])
             if userLanguage == "hi":
                 translated_text = Translator.translate_text(df["Answer"][similarities[0]],from_language='auto', to_language='hi', translator='google')
@@ -1785,19 +1785,19 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                 # Define keywords and entities
                 keywords = {
                     "zodiac_sign": [
-                        "zodiac sign", "zodiac_sign", "zodaic sign", "sun sign", "lagna sign", "moon sign","sun sin", "moon sin", "astrological sign", "aries", "taurus", "gemini",
+                        "zodiac sign", "zodiac_sign", "zodaic sign", "zodaic", "zodic", "zodac", "zodiac" ,"sun sign", "sun-sign", "lagna sign", "moon sign", "moon-sign","sun sin", "sunsign", "sunsin", "moonsign", "moonsin","moon sin", "astrological sign", "aries", "taurus", "gemini",
                         "cancer", "leo", "virgo", "libra", "scorpio", "sagittarius", "capricorn",
                         "aquarius", "pisces", "chandra rashi", "chandra lagna", "rising sign", "ascendant", "ascendant sign", "joint sign"
                     ],
                     "house_planets": [
-                        "house_planets", "house", "houses","bhava", "planet", "planets", "planetary","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus","saturn", "degree", "degre", "digri", "ketu", "leadership", "peace", "energy", "strength", "communication", "intellect", "business", "wisdom", "wealth", "children", "relationship", "beauty", "love", "creativity","hard work", "struggles", "struggle", "illusions", "desires", "spirituality", "past", "marriage", "relation-ship", "relation", "romance", "mind", "luxury", "finance"," achievement", "growth", "knowledge", "swabhav", "savbhaav"
+                        "house_planets", "house", "houses","bhava", "planet", "planat", "planets", "planetary","graha", "sun", "moon", "mars", "mercury", "jupiter", "jupyter" ,"venus","saturn", "degree", "degre", "digri", "ketu", "leadership", "peace", "energy", "strength", "communication", "intellect", "business", "wisdom", "wealth", "children", "relationship", "beauty", "love", "creativity","hard work", "struggles", "struggle", "illusions", "desires", "spirituality", "past", "marriage", "relation-ship", "relation", "romance", "mind", "luxury", "finance"," achievement", "growth", "knowledge", "swabhav", "savbhaav"
                     ],
-                    "kundli_signs":["kundli_signs", "gana", "yoni", "vasya", "nadi","varna","paya","tatva","life stone", "lucky stone", "horoscope", "kundli signs","kundli sign", "birth chart", "signs", "natal chart", "kundli", "birth_chart", "horoscope chart", "rashi", "rasi"],
+                    "kundli_signs":["kundli_signs", "gana", "yoni", "vasya", "nadi", "varna","paya","tatva", "life stone", "life-stone", "lucky stone", "lucky-stone", "horoscope", "kundli signs","kundli sign", "kundli-sign", "kundly", "kundle", "kundlee", "kundli","kundlie","birth chart", "birth", "signs", "natal chart", "birth_chart", "horoscope chart", "rashi", "rasi"],
 
                     "radical":["radical", "radicals", "life path number", "path number", "path no" ,"destiny number", "destiny no"],
                     
                     "tithi_yoga": [
-                        "tithi_yoga", "yoga", "raj yoga", "dhan yoga", "gaja kesari yoga", "parivartana yoga","yoga","yog",
+                        "tithi_yoga", "yoga", "raj yoga", "raj", "dhan yoga", "gaja kesari yoga", "parivartana yoga","yoga","yog",
                         "vipareeta yoga", "laxmi yoga", "chandra mangala yoga", "karana", "yog","tithi", "tithi number", "tithi no","lunar_month", "lunar", "lunaar","vara", "varaa","rahukaal", "rahukal", "rahu","nakshatra", "naksatra", "naksatraa", "nakstra", "naksatar","karan","gulika","sun position", "moon position", "rasee","rashee", "panchang", "panchaang"
                     ],
                     
@@ -1805,25 +1805,25 @@ async def getAnswer(question:str, item:Item, response:Response, request: Request
                     
                     "sun_rising_set":["sun_rising_set", "sun rise", "sun set", "sun rice", "san rice", "sun sets", "sun rising", "sun risings","san rising", "sun ricing","san rise"],
                     
-                    "mangal_dosh":["mangal_dosh", "mangal dosh", "mangal dosha", "mangal dos", "mangal", "mangel", "mangel dos", "mangel dosh", "dosha"],
+                    "mangal_dosh":["mangal_dosh", "mangal dosh", "mangal dosha", "mangal dos", "mangal", "mangel", "mangel dos", "mangel dosh", "dosha" ,"dosh"],
                     
-                    "kaalsarp_dosh": ["kaalsarp_dosh", "kaalsarp dosh", "kaalsarp dosha", "kaalsarp dos", "kaalsarp", "kalsarp", "kalsarp dos", "kalsarp dosh"],
+                    "kaalsarp_dosh": ["kaalsarp_dosh", "kaalsarp dosh", "kaalsarp dosha", "kaalsarp dos", "kaalsarp", "kalsarp", "kalsarp dos", "kalsarp", "kalsarp dosh"],
 
                     "manglik_dosh" : ["manglik_dosh", "manglik dosh", "manglik dosha", "manglik dos", "manglik", "manglek", "manglek dos", "manglek dosh"],
 
-                    "pitra_dosh": ["pitra_dosh", "pitra dosh", "pitra dosha", "pitra dos", "pitra", "pitar", "pitar dos", "pitar dosh"],
+                    "pitra_dosh": ["pitra_dosh", "pitra dosh", "pitra dosha", "pitra dos", "pitra", "pitar", "piter", "pitraa","pitar dos", "pitar dosh"],
                     
                     "mahadasha": ["mahadasha", "mahadasa", "mahdasa", "mahdasha", "mahaadasha", "maha dasha", "maha dasa", "events"],
                     
-                    "antardasha":["antardasha", "antardasa","anterdasha", "anterdasa"],
+                    "antardasha": ["antardasha", "antardasa", "antardashaa", "antardasaa", "anterdasha", "anterdasa", "anterdasaa", "anterdashaa"],
                     
-                    "chardasha":["chardasha", "chardasa", "chaardasa", "chaardasha"],
+                    "chardasha": ["chardasha", "chardashaa", "chardasa", "chardasaa", "chaardasa",  "chaardasaa", "chaardasha"],
                     
-                    "chardasha_main":["chardasha_main", "chardasha main", "chaardasha main", "chardsha main", "main chardasha", "main chardasa", "char dasha main", "char dasa main"],
+                    "chardasha_main": ["chardasha_main", "chardasha main", "chardasha main","chardasha-main", "chaardasha main", "chaardasha-main", "chardsha main", "chaardasaa main", "main chardasha", "main chardasa", "char dasha main", "char dasa main"],
                     
-                    "yogini":["yogini", "yogni", "yoogini", "yoogni", "yog dasha", "yogini dasha"],
+                    "yogini": ["yogini", "yogni", "yoogini", "yogne", "yognee", "yognie", "yoogni", "yog dasha", "yogini dasha", "yog", "yoog"],
                     
-                    "sade_sati":["sade_sati", "sade sati", "sade saati", "saade sati", "saade saati", "sade saty", "sade sateey", "sade satey", "sade-sati", "sade-saty","sadesati"],
+                    "sade_sati": ["sade_sati", "sade sati", "sade saati", "saade sati", "saade saati", "sade saty", "sade sateey", "sade satey", "sade-sati", "sade-saty","sadesati", "sati"],
                     
                     "friend_planets":["friend_planets", "friendship_planets","friendship", "friend", "friends", "friend planet", "friend planets", "friends planets", "planets friends", "planet friend", "planet friends", "enemies", "enemy"],
                     

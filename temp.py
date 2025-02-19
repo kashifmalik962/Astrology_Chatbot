@@ -1,18 +1,28 @@
+# "cn you tel me about kundli"
 
-from datetime import datetime
+from symspellpy import SymSpell, Verbosity
 
+# Initialize SymSpell
+sym_spell = SymSpell(max_dictionary_edit_distance=2, prefix_length=7)
 
-def get_current_date_time():
-    date = datetime.now().date()
-    time = datetime.now().time()
+# Load a dictionary
+dictionary_path = "frequency_dictionary_en_82_765.txt"  # Download from SymSpell GitHub
+sym_spell.load_dictionary(dictionary_path, term_index=0, count_index=1)
 
-    day, month, year = date.day, date.month, date.year
-    hour, minute = time.hour, time.minute
-    current_date, current_time = f"{day}/{month}/{year}", f"{hour}:{minute}"
+# Input text
+text = "Ths is a smple txt with spellng mistaks."
 
-    return current_date, current_time
+# Correct each word
+words = text.split()
+corrected_words = [
+    sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)[0].term
+    if sym_spell.lookup(word, Verbosity.CLOSEST, max_edit_distance=2)
+    else word
+    for word in words
+]
 
+# Join corrected words into a sentence
+corrected_text = " ".join(corrected_words)
 
-date, time = get_current_date_time()
-
-print(date)
+print("Original Text:", text)
+print("Corrected Text:", corrected_text)
